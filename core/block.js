@@ -212,9 +212,10 @@ Blockly.Block.terminateDrag_ = function() {
       selected.moveConnections_(dx, dy);
       delete selected.draggedBubbles_;
       selected.setDragging_(false);
-      selected.render();
       goog.Timer.callOnce(
           selected.bumpNeighbours_, Blockly.BUMP_DELAY, selected);
+      goog.Timer.callOnce(
+          selected.render, Blockly.BUMP_DELAY, selected);
       // Fire an event to allow scrollbars to resize.
       Blockly.fireUiEvent(window, 'resize');
     }
@@ -395,7 +396,7 @@ Blockly.Block.prototype.moveBy = function(dx, dy) {
 Blockly.Block.prototype.getHeightWidth = function() {
   try {
     if (Blockly.ieVersion() && Blockly.ieVersion() <= 10) {
-      this.getSvgRoot().style.display = "inline";   /* reqd for IE */
+          this.getSvgRoot().style.display = "inline";   /* reqd for IE */
     }
     var bBox = goog.object.clone(this.getSvgRoot().getBBox());
   } catch (e) {
