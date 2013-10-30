@@ -44,16 +44,15 @@ Blockly.inject = function(container, opt_options, callback) {
     goog.mixin(Blockly, Blockly.parseOptions_(opt_options));
   }
 
-  if (window.svgweb) {
-  // xmlns parameters are invalid here
   var svg = Blockly.createSvgElement('svg', {
-      'xmlns': 'http://www.w3.org/2000/svg',
-      'xmlns:html': 'http://www.w3.org/1999/xhtml',
-      'xmlns:xlink': 'http://www.w3.org/1999/xlink',
-      'version': '1.1',
-      'class': 'blocklySvg'
+    'xmlns': 'http://www.w3.org/2000/svg',
+    'xmlns:html': 'http://www.w3.org/1999/xhtml',
+    'xmlns:xlink': 'http://www.w3.org/1999/xlink',
+    'version': '1.1',
+    'class': 'blocklySvg'
   }, null);
 
+  if (window.svgweb) {
   // in case of flash fallback we should wait for svg to be fully loaded
   svg.addEventListener('SVGLoad', function() {
     // 'this' refers to your SVG root
@@ -65,7 +64,7 @@ Blockly.inject = function(container, opt_options, callback) {
   svgweb.appendChild(svg, container);
   }
   else {
-    Blockly.createDom_(container);
+    Blockly.createDom_(container, svg);
   Blockly.init_();
     callback();
   }
@@ -141,7 +140,7 @@ Blockly.parseOptions_ = function(options) {
  * @param {!Element} container Containing element.
  * @private
  */
-Blockly.createDom_ = function(container, svgInstance) {
+Blockly.createDom_ = function(container, svg) {
   // Sadly browsers (Chrome vs Firefox) are currently inconsistent in laying
   // out content in RTL mode.  Therefore Blockly forces the use of LTR,
   // then manually positions content in RTL as needed.
@@ -154,6 +153,7 @@ Blockly.createDom_ = function(container, svgInstance) {
 
   // Build the SVG DOM.
   /*
+<<<<<<< HEAD
   <svg
     xmlns="http://www.w3.org/2000/svg"
     xmlns:html="http://www.w3.org/1999/xhtml"
@@ -177,6 +177,8 @@ Blockly.createDom_ = function(container, svgInstance) {
   }
   goog.events.listen(svg, 'selectstart', function() { return false; });
   /*
+=======
+>>>>>>> Correction after review
   <defs>
     ... filters go here ...
   </defs>
