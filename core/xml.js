@@ -36,7 +36,7 @@ goog.provide('Blockly.Xml');
  */
 Blockly.Xml.workspaceToDom = function(workspace) {
   var width = Blockly.svgSize().width;
-  var xml = goog.dom.createDom('xml');
+  var xml = document.createElementNS(null, "xml");  // IE9 fix.
   var blocks = workspace.getTopBlocks(true);
   for (var i = 0, block; block = blocks[i]; i++) {
     var element = Blockly.Xml.blockToDom_(block);
@@ -192,8 +192,7 @@ Blockly.Xml.textToDom = function(text) {
   var dom = oParser.parseFromString(text, 'text/xml');
   // The DOM should have one and only one top-level node, an XML tag.
   if (!dom || !dom.firstChild ||
-      dom.firstChild.nodeName.toLowerCase() != 'xml' ||
-      dom.firstChild !== dom.lastChild) {
+      dom.firstChild.nodeName.toLowerCase() != 'xml') {
     // Whatever we got back from the parser is not XML.
     throw 'Blockly.Xml.textToDom did not obtain a valid XML tree.';
   }

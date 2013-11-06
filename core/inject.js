@@ -145,6 +145,7 @@ Blockly.createDom_ = function(container) {
     'version': '1.1',
     'class': 'blocklySvg'
   }, null);
+  goog.events.listen(svg, 'selectstart', function() { return false; });
   /*
   <defs>
     ... filters go here ...

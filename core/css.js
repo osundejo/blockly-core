@@ -49,6 +49,7 @@ Blockly.Css.inject = function() {
  */
 Blockly.Css.CONTENT = [
   '.blocklySvg {',
+  '  cursor: pointer;',
   '  background-color: #fff;',
   '  border: 1px solid #ddd;',
   ' -ms-touch-action: none;',
