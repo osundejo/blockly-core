@@ -385,8 +385,8 @@ Blockly.init_ = function() {
       Blockly.mainWorkspace.flyout_.init(Blockly.mainWorkspace, true);
       Blockly.mainWorkspace.flyout_.show(Blockly.languageTree.childNodes);
       // Translate the workspace sideways to avoid the fixed flyout.
-      Blockly.mainWorkspace.scrollX = Blockly.mainWorkspace.flyout_.width_;
-      var translation = 'translate(' + Blockly.mainWorkspace.scrollX + ', 0)';
+      Blockly.mainWorkspace.pageXOffset = Blockly.mainWorkspace.flyout_.width_;
+      var translation = 'translate(' + Blockly.mainWorkspace.pageXOffset + ', 0)';
       Blockly.mainWorkspace.getCanvas().setAttribute('transform', translation);
       Blockly.mainWorkspace.getBubbleCanvas().setAttribute('transform',
                                                            translation);
