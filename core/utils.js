@@ -413,9 +413,9 @@ Blockly.isNumber = function(str) {
 };
 
 Blockly.isMsie = function() {
-  return navigator.userAgent.indexOf("MSIE") >= 0;
+  return window.navigator.userAgent.indexOf("MSIE") >= 0;
 }
 
 Blockly.isTrident = function() {
-  return navigator.userAgent.indexOf("Trident") >= 0;
+  return window.navigator.userAgent.indexOf("Trident") >= 0;
 }
