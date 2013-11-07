@@ -23,7 +23,6 @@
  * a JavaScript framework such as Closure were used.
  * @author fraser@google.com (Neil Fraser)
  */
-//'use strict';
 
 goog.provide('Blockly.utils');
 
@@ -92,20 +91,17 @@ Blockly.bindEvent_ = function(element, name, thisObject, func) {
   bindData.push([element, name, wrapFunc]);
   // Add equivalent touch event.
   if (name in Blockly.bindEvent_.TOUCH_MAP) {
-    wrapFunc = function(e) {
+      wrapFunc = function (e) {
 
-        // required for IE 10
-        if (typeof e.target.style.msTouchAction != 'undefined') {
-            e.target.style.msTouchAction = "none";            
-        }
-
-        // required for IE 11+
-        if (typeof e.target.style.touchAction != 'undefined') {
+        if (typeof e.target.style.touchAction !== 'undefined') { // required for IE 11+
             e.target.style.touchAction = "none";
+        }
+        else if (typeof e.target.style.msTouchAction !== 'undefined') {  // required for IE 10
+            e.target.style.msTouchAction = "none";
         }
 
         // Punt on multitouch events.
-        var touchPoints = (typeof e.changedTouches != 'undefined') ? e.changedTouches : [e];
+        var touchPoints = (typeof e.changedTouches !== 'undefined') ? e.changedTouches : [e];
         for (var i = 0; i < touchPoints.length; ++i) {
 
             // Map the touch event's properties to the event.            
@@ -139,16 +135,16 @@ if ('ontouchstart' in document.documentElement) {
 }
 else if (window.navigator.msPointerEnabled) {  // IE 10 support
     Blockly.bindEvent_.TOUCH_MAP = {
-        mousedown: 'MSPointerDown',
-        mousemove: 'MSPointerMove',
-        mouseup: 'MSPointerUp'
+        mousedown: 'mspointerdown',
+        mousemove: 'mspointermove',
+        mouseup: 'mspointerup'
     };
 }
 else if (window.navigator.PointerEnabled) {  // IE 11+ support
     Blockly.bindEvent_.TOUCH_MAP = {
-        mousedown: 'PointerDown',
-        mousemove: 'PointerMove',
-        mouseup: 'PointerUp'
+        mousedown: 'pointerdown',
+        mousemove: 'pointermove',
+        mouseup: 'pointerup'
     };
 }
 else {
