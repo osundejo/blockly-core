@@ -36,7 +36,8 @@ goog.provide('Blockly.Xml');
  */
 Blockly.Xml.workspaceToDom = function(workspace) {
   var width = Blockly.svgSize().width;
-  var xml = document.createElementNS(null, "xml");  // IE9 fix.
+  var xml = Blockly.isMsie() ? document.createElementNS(null, 'xml') :
+                               document.createElement("xml");
   var blocks = workspace.getTopBlocks(true);
   for (var i = 0, block; block = blocks[i]; i++) {
     var element = Blockly.Xml.blockToDom_(block);
