@@ -91,30 +91,28 @@ Blockly.bindEvent_ = function(element, name, thisObject, func) {
   bindData.push([element, name, wrapFunc]);
   // Add equivalent touch event.
   if (name in Blockly.bindEvent_.TOUCH_MAP) {
-      wrapFunc = function (e) {
+    wrapFunc = function (e) {
+      if (e.target.style.touchAction) {  // required for IE 11+
+        e.target.style.touchAction = "none";
+      } else if (e.target.style.msTouchAction) {  // required for IE 10
+        e.target.style.msTouchAction = "none";
+      }
 
-        if (typeof e.target.style.touchAction !== 'undefined') { // required for IE 11+
-            e.target.style.touchAction = "none";
-        }
-        else if (typeof e.target.style.msTouchAction !== 'undefined') {  // required for IE 10
-            e.target.style.msTouchAction = "none";
-        }
+      // Punt on multitouch events.
+      var touchPoints = e.changedTouches || [e];
+      for (var i = 0; i < touchPoints.length; ++i) {
+        // Map the touch event's properties to the event.
+        e.clientX = touchPoints[i].clientX;
+        e.clientY = touchPoints[i].clientY;
 
-        // Punt on multitouch events.
-        var touchPoints = (typeof e.changedTouches !== 'undefined') ? e.changedTouches : [e];
-        for (var i = 0; i < touchPoints.length; ++i) {
-
-            // Map the touch event's properties to the event.            
-            e.clientX = touchPoints[i].clientX;
-            e.clientY = touchPoints[i].clientY;
-
-            func.apply(thisObject, arguments);
-            // Stop the browser from scrolling/zooming the page
-            e.preventDefault();            
-        }
+        func.apply(thisObject, arguments);
+        // Stop the browser from scrolling/zooming the page
+        e.preventDefault();
+      }
     };
     element.addEventListener(Blockly.bindEvent_.TOUCH_MAP[name],
-                             wrapFunc, false);
+                             wrapFunc,
+                             false);
     bindData.push([element, Blockly.bindEvent_.TOUCH_MAP[name], wrapFunc]);
   }
   return bindData;
@@ -132,23 +130,18 @@ if ('ontouchstart' in document.documentElement) {
     mousemove: 'touchmove',
     mouseup: 'touchend'
   };
-}
-else if (window.navigator.msPointerEnabled) {  // IE 10 support
-    Blockly.bindEvent_.TOUCH_MAP = {
-        mousedown: 'mspointerdown',
-        mousemove: 'mspointermove',
-        mouseup: 'mspointerup'
-    };
-}
-else if (window.navigator.PointerEnabled) {  // IE 11+ support
-    Blockly.bindEvent_.TOUCH_MAP = {
-        mousedown: 'pointerdown',
-        mousemove: 'pointermove',
-        mouseup: 'pointerup'
-    };
-}
-else {
-  Blockly.bindEvent_.TOUCH_MAP = {};
+} else if (window.navigator.PointerEnabled) {  // IE 11+ support
+  Blockly.bindEvent_.TOUCH_MAP = {
+    mousedown: 'mspointerdown',
+    mousemove: 'mspointermove',
+    mouseup: 'mspointerup'
+  };
+} else if (window.navigator.msPointerEnabled) {  // IE 10 support
+  Blockly.bindEvent_.TOUCH_MAP = {
+    mousedown: 'pointerdown',
+    mousemove: 'pointermove',
+    mouseup: 'pointerup'
+  };
 }
 
 /**
@@ -225,7 +218,7 @@ Blockly.getRelativeXY_ = function(element) {
   // Note that IE (9,10) returns 'translate(16 8)' instead of
   // 'translate(16, 8)'.
   var r = transform &&
-          transform.match(/translate\(\s*([-\d.]+)([ ,]\s*([-\d.]+)\s*\))?/);
+    transform.match(/translate\(\s*([-\d.]+)([ ,]\s*([-\d.]+)\s*\))?/);
   if (r) {
     xy.x += parseInt(r[1], 10);
     if (r[3]) {
