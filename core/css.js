@@ -52,6 +52,8 @@ Blockly.Css.CONTENT = [
   '  cursor: pointer;',
   '  background-color: #fff;',
   '  border: 1px solid #ddd;',
+  ' -ms-touch-action: none;',
+  ' touch-action: none;',
   '}',
   '.blocklyWidgetDiv {',
   '  position: absolute;',

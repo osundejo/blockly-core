@@ -508,7 +508,7 @@ Maze.init = function() {
   var visualization = document.getElementById('visualization');
   var onresize = function(e) {
     var top = visualization.offsetTop;
-    blocklyDiv.style.top = Math.max(10, top - window.scrollY) + 'px';
+    blocklyDiv.style.top = Math.max(10, top - window.pageYOffset) + 'px';
     blocklyDiv.style.left = rtl ? '10px' : '420px';
     blocklyDiv.style.width = (window.innerWidth - 440) + 'px';
   };
@@ -1088,8 +1088,8 @@ Maze.updatePegSpin_ = function(e) {
   }
   var pegSpin = document.getElementById('pegSpin');
   var bBox = BlocklyApps.getBBox_(pegSpin);
-  var x = bBox.x + bBox.width / 2 - window.scrollX;
-  var y = bBox.y + bBox.height / 2 - window.scrollY;
+  var x = bBox.x + bBox.width / 2 - window.pageXOffset;
+  var y = bBox.y + bBox.height / 2 - window.pageYOffset;
   var dx = e.clientX - x;
   var dy = e.clientY - y;
   var angle = Math.atan(dy / dx);

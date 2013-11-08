@@ -196,13 +196,8 @@ BlocklyApps.loadBlocks = function(defaultXml) {
   if ('BlocklyStorage' in window && window.location.hash.length > 1) {
     // An href with #key trigers an AJAX call to retrieve saved blocks.
     BlocklyStorage.retrieveXml(window.location.hash.substring(1));
-  } else if (window.sessionStorage.loadOnceBlocks) {
-    // Language switching stores the blocks during the reload.
-    var text = window.sessionStorage.loadOnceBlocks;
-    delete window.sessionStorage.loadOnceBlocks;
-    var xml = Blockly.Xml.textToDom(text);
-    Blockly.Xml.domToWorkspace(Blockly.mainWorkspace, xml);
-  } else if (defaultXml) {
+  }
+  else if (defaultXml) {
     // Load the editor with default starting blocks.
     var xml = Blockly.Xml.textToDom(defaultXml);
     Blockly.Xml.domToWorkspace(Blockly.mainWorkspace, xml);
@@ -665,15 +660,21 @@ BlocklyApps.getMsgOrNull = function(key) {
  */
 BlocklyApps.addTouchEvents = function() {
   // Do nothing if the browser doesn't support touch.
-  if (!('ontouchstart' in document.documentElement)) {
+    if (!('ontouchstart' in document.documentElement) && window.navigator.msMaxTouchPoints <= 1) {
     return;
   }
   // Treat ontouchend as equivalent to onclick for buttons.
   var buttons = document.getElementsByTagName('button');
   for (var i = 0, button; button = buttons[i]; i++) {
-    if (!button.ontouchend) {
-      button.ontouchend = button.onclick;
-    }
+      if (window.navigator.msPointerEnabled && !button.onmspointerup) {  // IE 10 support
+          button.onmspointerup = button.onclick;
+      }
+      else if (window.navigator.pointerEnabled && !button.onpointerup) {  // IE 11+ support
+          button.onpointerup = button.onclick;
+      }
+      else if (!button.ontouchend) {
+          button.ontouchend = button.onclick;
+      }
   }
 };
 

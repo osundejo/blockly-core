@@ -23,7 +23,6 @@
  * a JavaScript framework such as Closure were used.
  * @author fraser@google.com (Neil Fraser)
  */
-'use strict';
 
 goog.provide('Blockly.utils');
 
@@ -92,17 +91,27 @@ Blockly.bindEvent_ = function(element, name, thisObject, func) {
   bindData.push([element, name, wrapFunc]);
   // Add equivalent touch event.
   if (name in Blockly.bindEvent_.TOUCH_MAP) {
-    wrapFunc = function(e) {
-      // Punt on multitouch events.
-      if (e.changedTouches.length == 1) {
-        // Map the touch event's properties to the event.
-        var touchPoint = e.changedTouches[0];
-        e.clientX = touchPoint.clientX;
-        e.clientY = touchPoint.clientY;
-      }
-      func.apply(thisObject, arguments);
-      // Stop the browser from scrolling/zooming the page
-      e.preventDefault();
+      wrapFunc = function (e) {
+
+        if (typeof e.target.style.touchAction !== 'undefined') { // required for IE 11+
+            e.target.style.touchAction = "none";
+        }
+        else if (typeof e.target.style.msTouchAction !== 'undefined') {  // required for IE 10
+            e.target.style.msTouchAction = "none";
+        }
+
+        // Punt on multitouch events.
+        var touchPoints = (typeof e.changedTouches !== 'undefined') ? e.changedTouches : [e];
+        for (var i = 0; i < touchPoints.length; ++i) {
+
+            // Map the touch event's properties to the event.            
+            e.clientX = touchPoints[i].clientX;
+            e.clientY = touchPoints[i].clientY;
+
+            func.apply(thisObject, arguments);
+            // Stop the browser from scrolling/zooming the page
+            e.preventDefault();            
+        }
     };
     element.addEventListener(Blockly.bindEvent_.TOUCH_MAP[name],
                              wrapFunc, false);
@@ -123,7 +132,22 @@ if ('ontouchstart' in document.documentElement) {
     mousemove: 'touchmove',
     mouseup: 'touchend'
   };
-} else {
+}
+else if (window.navigator.msPointerEnabled) {  // IE 10 support
+    Blockly.bindEvent_.TOUCH_MAP = {
+        mousedown: 'mspointerdown',
+        mousemove: 'mspointermove',
+        mouseup: 'mspointerup'
+    };
+}
+else if (window.navigator.PointerEnabled) {  // IE 11+ support
+    Blockly.bindEvent_.TOUCH_MAP = {
+        mousedown: 'pointerdown',
+        mousemove: 'pointermove',
+        mouseup: 'pointerup'
+    };
+}
+else {
   Blockly.bindEvent_.TOUCH_MAP = {};
 }
 

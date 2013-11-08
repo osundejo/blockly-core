@@ -305,8 +305,8 @@ Blockly.onMouseDown_ = function(e) {
     Blockly.mainWorkspace.startDragMouseY = e.clientY;
     Blockly.mainWorkspace.startDragMetrics =
         Blockly.mainWorkspace.getMetrics();
-    Blockly.mainWorkspace.startScrollX = Blockly.mainWorkspace.scrollX;
-    Blockly.mainWorkspace.startScrollY = Blockly.mainWorkspace.scrollY;
+    Blockly.mainWorkspace.startScrollX = Blockly.mainWorkspace.pageXOffset;
+    Blockly.mainWorkspace.startScrollY = Blockly.mainWorkspace.pageYOffset;
   }
 };
 
@@ -688,8 +688,8 @@ Blockly.getMainWorkspaceMetrics_ = function() {
     viewWidth: svgSize.width,
     contentHeight: bottomEdge - topEdge,
     contentWidth: rightEdge - leftEdge,
-    viewTop: -Blockly.mainWorkspace.scrollY,
-    viewLeft: -Blockly.mainWorkspace.scrollX,
+    viewTop: -Blockly.mainWorkspace.pageYOffset,
+    viewLeft: -Blockly.mainWorkspace.pageXOffset,
     contentTop: topEdge,
     contentLeft: leftEdge,
     absoluteTop: 0,
@@ -709,16 +709,16 @@ Blockly.setMainWorkspaceMetrics_ = function(xyRatio) {
   }
   var metrics = Blockly.getMainWorkspaceMetrics_();
   if (goog.isNumber(xyRatio.x)) {
-    Blockly.mainWorkspace.scrollX = -metrics.contentWidth * xyRatio.x -
+      Blockly.mainWorkspace.pageXOffset = -metrics.contentWidth * xyRatio.x -
         metrics.contentLeft;
   }
   if (goog.isNumber(xyRatio.y)) {
-    Blockly.mainWorkspace.scrollY = -metrics.contentHeight * xyRatio.y -
+      Blockly.mainWorkspace.pageYOffset = -metrics.contentHeight * xyRatio.y -
         metrics.contentTop;
   }
   var translation = 'translate(' +
-      (Blockly.mainWorkspace.scrollX + metrics.absoluteLeft) + ',' +
-      (Blockly.mainWorkspace.scrollY + metrics.absoluteTop) + ')';
+      (Blockly.mainWorkspace.pageXOffset + metrics.absoluteLeft) + ',' +
+      (Blockly.mainWorkspace.pageYOffset + metrics.absoluteTop) + ')';
   Blockly.mainWorkspace.getCanvas().setAttribute('transform', translation);
   Blockly.mainWorkspace.getBubbleCanvas().setAttribute('transform',
                                                        translation);

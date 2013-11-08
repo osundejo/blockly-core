@@ -74,13 +74,13 @@ Blockly.Workspace.prototype.dragMode = false;
  * Current horizontal scrolling offset.
  * @type {number}
  */
-Blockly.Workspace.prototype.scrollX = 0;
+Blockly.Workspace.prototype.pageXOffset = 0;
 
 /**
  * Current vertical scrolling offset.
  * @type {number}
  */
-Blockly.Workspace.prototype.scrollY = 0;
+Blockly.Workspace.prototype.pageYOffset = 0;
 
 /**
  * The workspace's trashcan (if any).
