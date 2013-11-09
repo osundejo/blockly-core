@@ -217,7 +217,7 @@ Blockly.Trashcan.prototype.onMouseMove = function(e) {
   var mouseXY = Blockly.mouseToSvg(e);
   var trashXY = Blockly.getSvgXY_(this.svgGroup_);
   if (Blockly.ieVersion() && Blockly.ieVersion() <= 10) {
-    // Revert to HTML coordinates since getSreenCTM is broken in IE <= 10.
+    // Revert to HTML coordinates since getScreenCTM is broken in IE <= 10.
     mouseXY = {
       'x': e.clientX,
       'y': e.clientY

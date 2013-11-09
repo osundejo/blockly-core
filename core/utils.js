@@ -89,13 +89,14 @@ Blockly.bindEvent_ = function(element, name, thisObject, func) {
   };
   element.addEventListener(name, wrapFunc, false);
   bindData.push([element, name, wrapFunc]);
+  var targetStyle = e.target.style;
   // Add equivalent touch event.
   if (name in Blockly.bindEvent_.TOUCH_MAP) {
     wrapFunc = function (e) {
-      if (e.target.style.touchAction) {  // required for IE 11+
-        e.target.style.touchAction = "none";
-      } else if (e.target.style.msTouchAction) {  // required for IE 10
-        e.target.style.msTouchAction = "none";
+      if (targetStyle.touchAction) {  // required for IE 11+
+        targetStyle.touchAction = "none";
+      } else if (targetStyle.msTouchAction) {  // required for IE 10
+        targetStyle.msTouchAction = "none";
       }
 
       // Punt on multitouch events.
@@ -130,17 +131,17 @@ if ('ontouchstart' in document.documentElement) {
     mousemove: 'touchmove',
     mouseup: 'touchend'
   };
-} else if (window.navigator.PointerEnabled) {  // IE 11+ support
-  Blockly.bindEvent_.TOUCH_MAP = {
-    mousedown: 'mspointerdown',
-    mousemove: 'mspointermove',
-    mouseup: 'mspointerup'
-  };
-} else if (window.navigator.msPointerEnabled) {  // IE 10 support
+} else if (window.navigator.pointerEnabled) {  // IE 11+ support
   Blockly.bindEvent_.TOUCH_MAP = {
     mousedown: 'pointerdown',
     mousemove: 'pointermove',
     mouseup: 'pointerup'
+  };
+} else if (window.navigator.msPointerEnabled) {  // IE 10 support
+  Blockly.bindEvent_.TOUCH_MAP = {
+    mousedown: 'MSPointerDown',
+    mousemove: 'MSPointerMove',
+    mouseup: 'MSPointerUp'
   };
 }
 
@@ -431,20 +432,13 @@ Blockly.isNumber = function(str) {
 
 Blockly.isMsie = function() {
   return window.navigator.userAgent.indexOf("MSIE") >= 0;
-}
+};
 
 Blockly.isTrident = function() {
   return window.navigator.userAgent.indexOf("Trident") >= 0;
-}
+};
 
-// Return the version of Internet Explorer or undefined if not IE.
+// Return the version of Internet Explorer (8+) or undefined if not IE.
 Blockly.ieVersion = function() {
-  if (navigator.appName == 'Microsoft Internet Explorer') {
-    var ua = navigator.userAgent;
-    var re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
-    if (re.exec(ua) != null) {
-      var ieVersion = parseFloat(RegExp.$1);
-    }
-  }
-  return ieVersion;
-}
+  return document.documentMode;
+};
