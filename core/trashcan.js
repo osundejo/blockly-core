@@ -137,7 +137,7 @@ Blockly.Trashcan.prototype.createDom = function() {
   </g>
   */
   this.svgGroup_ = Blockly.createSvgElement('g',
-      {'filter': 'url(#blocklyTrashcanShadowFilter)'}, null);
+      {'id': 'trashcan', 'filter': 'url(#blocklyTrashcanShadowFilter)'}, null);
   this.svgClosedCan_ = Blockly.createSvgElement('image',
       {'width': this.WIDTH_, 'height': this.HEIGHT_},
       this.svgGroup_);
@@ -216,6 +216,18 @@ Blockly.Trashcan.prototype.onMouseMove = function(e) {
   }
   var mouseXY = Blockly.mouseToSvg(e);
   var trashXY = Blockly.getSvgXY_(this.svgGroup_);
+  if (Blockly.ieVersion() && Blockly.ieVersion() <= 10) {
+    // Revert to HTML coordinates since getSreenCTM is broken in IE <= 10.
+    mouseXY = {
+      'x': e.clientX,
+      'y': e.clientY
+    };
+    var trashBB = document.getElementById('trashcan').getBoundingClientRect();
+    trashXY = {
+      'x': trashBB.left,
+      'y': trashBB.top
+    };
+  }
   var over = ((mouseXY.x + this.radius) > trashXY.x) &&
              (mouseXY.x < (trashXY.x + this.WIDTH_ + this.radius)) &&
              ((mouseXY.y + this.radius) > trashXY.y) &&
