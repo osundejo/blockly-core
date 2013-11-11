@@ -396,15 +396,8 @@ Blockly.Block.prototype.getHeightWidth = function() {
   try {
     if (Blockly.ieVersion() && Blockly.ieVersion() <= 10) {
       this.getSvgRoot().style.display = "inline";   /* reqd for IE */
-      var bBox = {
-        x: this.getSvgRoot().getBBox().x,
-        y: this.getSvgRoot().getBBox().y,
-        width: this.getSvgRoot().getBBox().width,
-        height: this.getSvgRoot().getBBox().height
-      };
-    } else {
-      var bBox = this.getSvgRoot().getBBox();
     }
+    var bBox = goog.object.clone(this.getSvgRoot().getBBox());
   } catch (e) {
     // Firefox has trouble with hidden elements (Bug 528969).
     return {height: 0, width: 0};
