@@ -89,10 +89,10 @@ Blockly.bindEvent_ = function(element, name, thisObject, func) {
   };
   element.addEventListener(name, wrapFunc, false);
   bindData.push([element, name, wrapFunc]);
-  var targetStyle = e.target.style;
   // Add equivalent touch event.
   if (name in Blockly.bindEvent_.TOUCH_MAP) {
     wrapFunc = function (e) {
+      var targetStyle = e.target.style;
       if (targetStyle.touchAction) {  // required for IE 11+
         targetStyle.touchAction = "none";
       } else if (targetStyle.msTouchAction) {  // required for IE 10
