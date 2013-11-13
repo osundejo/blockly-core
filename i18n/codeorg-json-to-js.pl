@@ -6,11 +6,18 @@ if (@ARGV != 1) {
 
 ($js_locale) = @ARGV;
 
-print "goog.provide('Blockly.Msg.", $js_locale, "');\n";
+print "goog.provide('Blockly.Msg.${js_locale}');\n";
 print "goog.require('Blockly.Msg');\n";
 
+$message_count = 0;
+
 while (<STDIN>) {
-  if (/^ *"(.*)?": (".*"),? *$/) {
-    print 'Blockly.Msg.', $1, ' = ', $2, ";\n";
+  if (/^ *"(.*?)": *(".*"),? *$/) {
+    $message_count++;
+    print "Blockly.Msg.$1 = $2;\n";
   }
+}
+
+if (!$message_count) {
+  die "No strings for $js_locale";
 }
