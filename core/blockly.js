@@ -630,22 +630,13 @@ Blockly.playAudio = function(name, options) {
       newSound.start ? newSound.start(0) : newSound.noteOn(0);
       Blockly.SOUNDS_[name] = newSound;
     } else if (!goog.userAgent.MOBILE) {  // HTML 5 audio on mobile is bad.
-      var newSound;
-      if (goog.userAgent.isDocumentMode(9)) {
-        newSound = sound;
-      } else {
-        newSound = sound.cloneNode();
-      }
-
       // Update the sound hash with the looping sound, and stop the original sound
       // This is to prevent when there are multiple sounds of the same name being
       // played, which should not happen.
       sound.pause();
-      Blockly.SOUNDS_[name] = newSound;
-
-      newSound.volume = (options.volume !== undefined) ? options.volume : 1;
-      newSound.loop = options.loop;
-      newSound.play();
+      sound.volume = (options.volume !== undefined) ? options.volume : 1;
+      sound.loop = options.loop;
+      sound.play();
     }
   }
 };
