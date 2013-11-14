@@ -153,7 +153,12 @@ Blockly.OPPOSITE_TYPE[Blockly.PREVIOUS_STATEMENT] = Blockly.NEXT_STATEMENT;
  * @const
  */
 Blockly.SOUNDS_ = {};
+
+/**
+ * Handle vendor prefix.
+ */
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
 if (window.AudioContext) {
   Blockly.CONTEXT = new AudioContext();
 }
@@ -530,21 +535,48 @@ Blockly.isTargetInput_ = function(e) {
   return e.target.type == 'textarea' || e.target.type == 'text';
 };
 
-Blockly.onSoundLoad = function(request, name) {
+/**
+ * Create an AJAX onload function scoped to request and name params.
+ * @param {!XMLHttpRequest} request The requst to listen on.
+ * @param {string} name The name of the sound so we can reference it later.
+ * @return {function} The onload function.
+ */
+Blockly.onSoundLoad_ = function(request, name) {
   var onload = function() {
     Blockly.CONTEXT.decodeAudioData(request.response, function(buffer) {
-      Blockly.SOUNDS_[name] = Blockly.createSoundFromBuffer({buffer: buffer});
+      Blockly.SOUNDS_[name] = Blockly.createSoundFromBuffer_({buffer: buffer});
     });
   };
   return onload;
 };
 
-Blockly.createSoundFromBuffer = function(options) {
+/**
+ * Create a web audio buffer source from an array buffer.
+ * @param {!Object} options A set of options which must include the array
+ *   buffer from which to create the sound and may optionally include a loop
+ *   option.
+ * @return {AudioBufferSourceNode} The sound.
+ */
+Blockly.createSoundFromBuffer_ = function(options) {
   var source = Blockly.CONTEXT.createBufferSource();
   source.buffer = options.buffer;
-  source.loop = options && options.loop;
+  source.loop = options.loop;
   source.connect(Blockly.CONTEXT.destination);
   return source;
+};
+
+/**
+ * Load an audio file using the web audio api.
+ * @param {!Array.<string>} filenames List of file types.
+ * @param {string} name Name of sound.
+ * @private
+ */
+Blockly.loadWebAudio_ = function(filenames, name) {
+  var request = new XMLHttpRequest();
+  request.open('GET', filenames[0], true);
+  request.responseType = 'arraybuffer';
+  request.onload = Blockly.onSoundLoad_(request, name);
+  request.send();
 };
 
 /**
@@ -557,11 +589,7 @@ Blockly.createSoundFromBuffer = function(options) {
  */
 Blockly.loadAudio_ = function(filenames, name) {
   if (window.AudioContext) {
-    var request = new XMLHttpRequest();
-    request.open('GET', filenames[0], true);
-    request.responseType = 'arraybuffer';
-    request.onload = Blockly.onSoundLoad(request, name);
-    request.send();
+    Blockly.loadWebAudio_(filenames, name);
   } else if (window.Audio && filenames.length) {
     var sound;
     var audioTest = new window.Audio();
@@ -598,31 +626,26 @@ Blockly.playAudio = function(name, options) {
   if (sound) {
     if (window.AudioContext) {
       options.buffer = sound.buffer;
-      var newSound = Blockly.createSoundFromBuffer(options);
+      var newSound = Blockly.createSoundFromBuffer_(options);
       newSound.start ? newSound.start(0) : newSound.noteOn(0);
       Blockly.SOUNDS_[name] = newSound;
     } else if (!goog.userAgent.MOBILE) {  // HTML 5 audio on mobile is bad.
-      var mySound;
-      var ie9 = goog.userAgent.DOCUMENT_MODE &&
-                goog.userAgent.DOCUMENT_MODE === 9;
-      if (ie9 || goog.userAgent.IPAD || goog.userAgent.ANDROID) {
-        // Creating a new audio node causes lag in IE9, Android and iPad. Android
-        // and IE9 refetch the file from the server, iPad uses a singleton audio
-        // node which must be deleted and recreated for each new audio tag.
-        mySound = sound;
+      var newSound;
+      if (goog.userAgent.isDocumentMode(9)) {
+        newSound = sound;
       } else {
-        mySound = sound.cloneNode();
+        newSound = sound.cloneNode();
       }
 
       // Update the sound hash with the looping sound, and stop the original sound
       // This is to prevent when there are multiple sounds of the same name being
       // played, which should not happen.
       sound.pause();
-      Blockly.SOUNDS_[name] = mySound;
+      Blockly.SOUNDS_[name] = newSound;
 
-      mySound.volume = (options.volume !== undefined) ? options.volume : 1;
-      mySound.loop = options.loop ? true : false;
-      mySound.play();
+      newSound.volume = (options.volume !== undefined) ? options.volume : 1;
+      newSound.loop = options.loop;
+      newSound.play();
     }
   }
 };
@@ -634,7 +657,13 @@ Blockly.playAudio = function(name, options) {
 Blockly.stopLoopingAudio = function(name) {
   var sound = Blockly.SOUNDS_[name];
   if (sound) {
-    sound.stop ? sound.stop(0) : sound.pause();
+    if (sound.stop) {
+      sound.stop(0);
+    } else if (sound.noteOff) {
+      sound.noteOff(0);
+    } else {
+      sound.pause();
+    }
   }
 };
 
