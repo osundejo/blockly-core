@@ -544,6 +544,7 @@ Blockly.isTargetInput_ = function(e) {
 Blockly.onSoundLoad_ = function(request, name) {
   var onload = function() {
     Blockly.CONTEXT.decodeAudioData(request.response, function(buffer) {
+      // Create an initial dummy sound.
       Blockly.SOUNDS_[name] = Blockly.createSoundFromBuffer_({buffer: buffer});
     });
   };
@@ -561,7 +562,10 @@ Blockly.createSoundFromBuffer_ = function(options) {
   var source = Blockly.CONTEXT.createBufferSource();
   source.buffer = options.buffer;
   source.loop = options.loop;
-  source.connect(Blockly.CONTEXT.destination);
+  var gainNode = Blockly.CONTEXT.createGain();
+  source.connect(gainNode);
+  gainNode.connect(Blockly.CONTEXT.destination);
+  gainNode.gain.value = options.volume || 1;
   return source;
 };
 
@@ -622,6 +626,8 @@ Blockly.loadAudio_ = function(filenames, name) {
  */
 Blockly.playAudio = function(name, options) {
   var sound = Blockly.SOUNDS_[name];
+  // Precaution since we are about to lose our pointer to this sound.
+  Blockly.stopLoopingAudio(name);
   var options = options || {};
   if (sound) {
     if (window.AudioContext) {
@@ -634,7 +640,6 @@ Blockly.playAudio = function(name, options) {
       // Update the sound hash with the looping sound, and stop the original sound
       // This is to prevent when there are multiple sounds of the same name being
       // played, which should not happen.
-      sound.pause();
       sound.volume = (options.volume !== undefined) ? options.volume : 1;
       sound.loop = options.loop;
       sound.play();
