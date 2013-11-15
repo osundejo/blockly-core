@@ -23,6 +23,7 @@
  */
 'use strict';
 
+goog.require('goog.dom.xml');
 goog.provide('Blockly.Xml');
 
 // TODO(scr): Fix circular dependencies
@@ -36,8 +37,9 @@ goog.provide('Blockly.Xml');
  */
 Blockly.Xml.workspaceToDom = function(workspace) {
   var width = Blockly.svgSize().width;
-  var xml = Blockly.isMsie() ? document.createElementNS(null, 'xml') :
-                               document.createElement("xml");
+  // IE breaks on creating an "xml" element unless you use NS and null.
+  var xml = Blockly.ieVersion() ? document.createElementNS(null, 'xml') :
+                                  document.createElement("xml");
   var blocks = workspace.getTopBlocks(true);
   for (var i = 0, block; block = blocks[i]; i++) {
     var element = Blockly.Xml.blockToDom_(block);
@@ -189,8 +191,7 @@ Blockly.Xml.domToPrettyText = function(dom) {
  * @return {!Element} A tree of XML elements.
  */
 Blockly.Xml.textToDom = function(text) {
-  var oParser = new DOMParser();
-  var dom = oParser.parseFromString(text, 'text/xml');
+  var dom = goog.dom.xml.loadXml(text);
   // The DOM should have one and only one top-level node, an XML tag.
   if (!dom || !dom.firstChild ||
       dom.firstChild.nodeName.toLowerCase() != 'xml') {

@@ -364,12 +364,12 @@ Blockly.ScrollbarNative.prototype.createDom_ = function() {
   </foreignObject>
   */
   this.foreignObject_ = Blockly.createSvgElement('foreignObject', {}, null);
-  var body = document.createElementNS(Blockly.HTML_NS, 'body');
+  var body = Blockly.createElementNS(Blockly.HTML_NS, 'body');
   body.setAttribute('xmlns', Blockly.HTML_NS);
   body.setAttribute('class', 'blocklyMinimalBody');
-  var outer = document.createElementNS(Blockly.HTML_NS, 'div');
+  var outer = Blockly.createElementNS(Blockly.HTML_NS, 'div');
   this.outerDiv_ = outer;
-  var inner = document.createElementNS(Blockly.HTML_NS, 'img');
+  var inner = Blockly.createElementNS(Blockly.HTML_NS, 'img');
   inner.setAttribute('src', Blockly.assetUrl('media/1x1.gif'));
   this.innerImg_ = inner;
 

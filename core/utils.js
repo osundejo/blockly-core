@@ -27,6 +27,15 @@
 goog.provide('Blockly.utils');
 
 
+Blockly.createElementNS = function (ns, name) {
+  var element;
+  if (Blockly.ieVersion() == 8) {
+    element = document.createElement(name);
+  } else {
+    element = document.createElementNS(ns, name);
+  }
+  return element;
+};
 /**
  * Add a CSS class to a element.
  * Similar to Closure's goog.dom.classes.add, except it handles SVG elements.
@@ -270,7 +279,7 @@ Blockly.getAbsoluteXY_ = function(element) {
  */
 Blockly.createSvgElement = function(name, attrs, opt_parent) {
   var e = /** @type {!SVGElement} */ (
-      document.createElementNS(Blockly.SVG_NS, name));
+      Blockly.createElementNS(Blockly.SVG_NS, name));
   for (var key in attrs) {
     e.setAttribute(key, attrs[key]);
   }
