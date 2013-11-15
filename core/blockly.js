@@ -573,7 +573,7 @@ Blockly.createSoundFromBuffer_ = function(options) {
  */
 Blockly.loadWebAudio_ = function(filenames, name) {
   var request = new XMLHttpRequest();
-  request.open('GET', filenames[0], true);
+  request.open('GET', filenames[0], true);  // Hack, just use first file (mp3).
   request.responseType = 'arraybuffer';
   request.onload = Blockly.onSoundLoad_(request, name);
   request.send();
@@ -627,6 +627,7 @@ Blockly.playAudio = function(name, options) {
     if (window.AudioContext) {
       options.buffer = sound.buffer;
       var newSound = Blockly.createSoundFromBuffer_(options);
+      // Play sound, older versions of the Web Audio API used noteOn(Off).
       newSound.start ? newSound.start(0) : newSound.noteOn(0);
       Blockly.SOUNDS_[name] = newSound;
     } else if (!goog.userAgent.MOBILE) {  // HTML 5 audio on mobile is bad.
@@ -648,11 +649,11 @@ Blockly.playAudio = function(name, options) {
 Blockly.stopLoopingAudio = function(name) {
   var sound = Blockly.SOUNDS_[name];
   if (sound) {
-    if (sound.stop) {
+    if (sound.stop) {  // Newest web audio pseudo-standard.
       sound.stop(0);
-    } else if (sound.noteOff) {
+    } else if (sound.noteOff) {  // Older web audio.
       sound.noteOff(0);
-    } else {
+    } else {  // html 5 audio.
       sound.pause();
     }
   }
