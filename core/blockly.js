@@ -155,6 +155,15 @@ Blockly.OPPOSITE_TYPE[Blockly.PREVIOUS_STATEMENT] = Blockly.NEXT_STATEMENT;
 Blockly.SOUNDS_ = {};
 
 /**
+ * Handle vendor prefix.
+ */
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+if (window.AudioContext) {
+  Blockly.CONTEXT = new AudioContext();
+}
+
+/**
  * Currently selected block.
  * @type {Blockly.Block}
  */
@@ -527,6 +536,54 @@ Blockly.isTargetInput_ = function(e) {
 };
 
 /**
+ * Create an AJAX onload function scoped to request and name params.
+ * @param {!XMLHttpRequest} request The requst to listen on.
+ * @param {string} name The name of the sound so we can reference it later.
+ * @return {function} The onload function.
+ */
+Blockly.onSoundLoad_ = function(request, name) {
+  var onload = function() {
+    Blockly.CONTEXT.decodeAudioData(request.response, function(buffer) {
+      // Create an initial dummy sound.
+      Blockly.SOUNDS_[name] = Blockly.createSoundFromBuffer_({buffer: buffer});
+    });
+  };
+  return onload;
+};
+
+/**
+ * Create a web audio buffer source from an array buffer.
+ * @param {!Object} options A set of options which must include the array
+ *   buffer from which to create the sound and may optionally include a loop
+ *   option.
+ * @return {AudioBufferSourceNode} The sound.
+ */
+Blockly.createSoundFromBuffer_ = function(options) {
+  var source = Blockly.CONTEXT.createBufferSource();
+  source.buffer = options.buffer;
+  source.loop = options.loop;
+  var gainNode = Blockly.CONTEXT.createGain();
+  source.connect(gainNode);
+  gainNode.connect(Blockly.CONTEXT.destination);
+  gainNode.gain.value = options.volume || 1;
+  return source;
+};
+
+/**
+ * Load an audio file using the web audio api.
+ * @param {!Array.<string>} filenames List of file types.
+ * @param {string} name Name of sound.
+ * @private
+ */
+Blockly.loadWebAudio_ = function(filenames, name) {
+  var request = new XMLHttpRequest();
+  request.open('GET', filenames[0], true);  // Hack, just use first file (mp3).
+  request.responseType = 'arraybuffer';
+  request.onload = Blockly.onSoundLoad_(request, name);
+  request.send();
+};
+
+/**
  * Load an audio file.  Cache it, ready for instantaneous playing.
  * @param {!Array.<string>} filenames List of file types in decreasing order of
  *   preference (i.e. increasing size).  E.g. ['media/go.mp3', 'media/go.wav']
@@ -535,27 +592,29 @@ Blockly.isTargetInput_ = function(e) {
  * @private
  */
 Blockly.loadAudio_ = function(filenames, name) {
-  if (!window.Audio || !filenames.length) {
-    // No browser support for Audio.
-    return;
-  }
-  var sound;
-  var audioTest = new window.Audio();
-  for (var i = 0; i < filenames.length; i++) {
-    var filename = filenames[i];
-    var ext = filename.match(/\.(\w+)(\?.*)?$/);
-    if (ext && audioTest.canPlayType('audio/' + ext[1])) {
-      // Found an audio format we can play.
-      sound = new window.Audio(filename);
-      break;
+  if (window.AudioContext) {
+    Blockly.loadWebAudio_(filenames, name);
+  } else if (window.Audio && filenames.length) {
+    var sound;
+    var audioTest = new window.Audio();
+    for (var i = 0; i < filenames.length; i++) {
+      var filename = filenames[i];
+      var ext = filename.match(/\.(\w+)(\?.*)?$/);
+      if (ext && audioTest.canPlayType('audio/' + ext[1])) {
+        // Found an audio format we can play.
+        sound = new window.Audio(filename);
+        break;
+      }
     }
-  }
 
-  // Force to load the audio by playing it and pause immediately.
-  if (sound && sound.play) {
-    sound.play();
-    sound.pause();
-    Blockly.SOUNDS_[name] = sound;
+    if (sound && sound.play) {
+      // Precache audio except for IE9.
+      if (!goog.userAgent.isDocumentMode(9)) {
+        sound.play();
+        sound.pause();
+      }
+      Blockly.SOUNDS_[name] = sound;
+    }
   }
 };
 
@@ -567,29 +626,24 @@ Blockly.loadAudio_ = function(filenames, name) {
  */
 Blockly.playAudio = function(name, options) {
   var sound = Blockly.SOUNDS_[name];
+  // Precaution since we are about to lose our pointer to this sound.
+  Blockly.stopLoopingAudio(name);
+  var options = options || {};
   if (sound) {
-    var mySound;
-    var ie9 = goog.userAgent.DOCUMENT_MODE &&
-              goog.userAgent.DOCUMENT_MODE === 9;
-    if (ie9 || goog.userAgent.IPAD || goog.userAgent.ANDROID) {
-      // Creating a new audio node causes lag in IE9, Android and iPad. Android
-      // and IE9 refetch the file from the server, iPad uses a singleton audio
-      // node which must be deleted and recreated for each new audio tag.
-      mySound = sound;
-    } else {
-      mySound = sound.cloneNode();
+    if (window.AudioContext) {
+      options.buffer = sound.buffer;
+      var newSound = Blockly.createSoundFromBuffer_(options);
+      // Play sound, older versions of the Web Audio API used noteOn(Off).
+      newSound.start ? newSound.start(0) : newSound.noteOn(0);
+      Blockly.SOUNDS_[name] = newSound;
+    } else if (!goog.userAgent.MOBILE) {  // HTML 5 audio on mobile is bad.
+      // Update the sound hash with the looping sound, and stop the original sound
+      // This is to prevent when there are multiple sounds of the same name being
+      // played, which should not happen.
+      sound.volume = (options.volume !== undefined) ? options.volume : 1;
+      sound.loop = options.loop;
+      sound.play();
     }
-
-    // Update the sound hash with the looping sound, and stop the original sound
-    // This is to prevent when there are multiple sounds of the same name being
-    // played, which should not happen.
-    sound.pause();
-    Blockly.SOUNDS_[name] = mySound;
-
-    mySound.volume =
-        (options && options.volume !== undefined) ? options.volume : 1;
-    mySound.loop = (options && options.loop) ? true : false;
-    mySound.play();
   }
 };
 
@@ -600,7 +654,13 @@ Blockly.playAudio = function(name, options) {
 Blockly.stopLoopingAudio = function(name) {
   var sound = Blockly.SOUNDS_[name];
   if (sound) {
-    sound.pause();
+    if (sound.stop) {  // Newest web audio pseudo-standard.
+      sound.stop(0);
+    } else if (sound.noteOff) {  // Older web audio.
+      sound.noteOff(0);
+    } else {  // html 5 audio.
+      sound.pause();
+    }
   }
 };
 
