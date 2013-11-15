@@ -17429,10 +17429,10 @@ Blockly.init_ = function() {
   Blockly.mainWorkspace.pageXOffset = Blockly.mainWorkspace.flyout_.width_;
   translation = "translate(" + Blockly.mainWorkspace.pageXOffset + ", 0)";
   Blockly.mainWorkspace.getCanvas().setAttribute("transform", translation);
-  Blockly.mainWorkspace.getBubbleCanvas().setAttribute("transform", translation)
+  Blockly.mainWorkspace.getBubbleCanvas().setAttribute("transform", translation);
+  Blockly.loadAudio_([Blockly.assetUrl("media/click.mp3"), Blockly.assetUrl("media/click.wav"), Blockly.assetUrl("media/click.ogg")], "click");
+  Blockly.loadAudio_([Blockly.assetUrl("media/delete.mp3"), Blockly.assetUrl("media/delete.ogg"), Blockly.assetUrl("media/delete.wav")], "delete")
 };
-Blockly.loadAudio_([Blockly.assetUrl("media/click.mp3"), Blockly.assetUrl("media/click.wav"), Blockly.assetUrl("media/click.ogg")], "click");
-Blockly.loadAudio_([Blockly.assetUrl("media/delete.mp3"), Blockly.assetUrl("media/delete.ogg"), Blockly.assetUrl("media/delete.wav")], "delete");
 goog.provide("Blockly.FieldCheckbox");
 goog.require("Blockly.Field");
 Blockly.FieldCheckbox = function(state, opt_changeHandler) {

@@ -376,16 +376,16 @@ Blockly.init_ = function() {
   Blockly.mainWorkspace.getCanvas().setAttribute('transform', translation);
   Blockly.mainWorkspace.getBubbleCanvas().setAttribute('transform',
       translation);
+  // Load the sounds.
+  Blockly.loadAudio_(
+      [Blockly.assetUrl('media/click.mp3'),
+      Blockly.assetUrl('media/click.wav'),
+      Blockly.assetUrl('media/click.ogg')],
+      'click');
+  Blockly.loadAudio_(
+      [Blockly.assetUrl('media/delete.mp3'),
+      Blockly.assetUrl('media/delete.ogg'),
+      Blockly.assetUrl('media/delete.wav')],
+      'delete');
 };
 
-// Load the sounds.
-Blockly.loadAudio_(
-    [Blockly.assetUrl('media/click.mp3'),
-    Blockly.assetUrl('media/click.wav'),
-    Blockly.assetUrl('media/click.ogg')],
-    'click');
-Blockly.loadAudio_(
-    [Blockly.assetUrl('media/delete.mp3'),
-    Blockly.assetUrl('media/delete.ogg'),
-    Blockly.assetUrl('media/delete.wav')],
-    'delete');
