@@ -42,12 +42,12 @@ Blockly.Css.inject = function() {
       '%HAND_OPEN_PATH%',
       Blockly.assetUrl('media/handopen.cur'));
   goog.cssom.addCssText(text);
-  
+
   // Pass styles to svgweb manualy. No way to do it automatic
   if (window.svgweb) {
-    window.svgweb.updateCssStyleSheets();	  
+    window.svgweb.updateCssStyleSheets();
   }
-  
+
 };
 
 /**
@@ -119,9 +119,9 @@ Blockly.Css.CONTENT = [
   '}',
   '.blocklyText {',
   '  cursor: default;',
-  // In Windows 8 there is no sans-serif font (But development and testing is likely under this OS). 
-  // In that case flash falls back to "times new roman". It spoils the look. So I replaced it to more 
-  // suitable font for demonstration purposes. In future when IE8 core support would be ready and this 
+  // In Windows 8 there is no sans-serif font (But development and testing is likely under this OS).
+  // In that case flash falls back to "times new roman". It spoils the look. So I replaced it to more
+  // suitable font for demonstration purposes. In future when IE8 core support would be ready and this
   // branching could be omitted. Please find below other branching of such kind.
   (window.svgweb) ? '  font-family: arial;' : '  font-family: sans-serif;',
   (window.svgweb) ? '  font-size: 14pt;' : '  font-size: 11pt;',
@@ -169,11 +169,11 @@ Blockly.Css.CONTENT = [
   '.blocklyContextMenuShadow,',
   '.blocklyDropdownMenuShadow {',
   '  fill: #bbb;',
-  (window.svgweb) ? '' : '  filter: url(#blocklyShadowFilter);', 
+  (window.svgweb) ? '' : '  filter: url(#blocklyShadowFilter);',
   '}',
   '.blocklyTooltipText {',
   (window.svgweb) ? '  font-family: arial;' : '  font-family: sans-serif;',
-  (window.svgweb) ? '  font-size: 12pt;' : '  font-size: 9pt;', 
+  (window.svgweb) ? '  font-size: 12pt;' : '  font-size: 9pt;',
   '  fill: #000;',
   '}',
   '',
@@ -193,7 +193,7 @@ Blockly.Css.CONTENT = [
   '.blocklyIconMark {',
   '  cursor: default !important;',
   (window.svgweb) ? '  font-family: arial;' : '  font-family: sans-serif;',
-  (window.svgweb) ? '  font-size: 12pt;' : '  font-size: 9pt;', 
+  (window.svgweb) ? '  font-size: 12pt;' : '  font-size: 9pt;',
   '  font-weight: bold;',
   '  fill: #ccc;',
   '  text-anchor: middle;',
@@ -213,7 +213,7 @@ Blockly.Css.CONTENT = [
   '}',
   '.blocklyHtmlInput {',
   (window.svgweb) ? '  font-family: arial;' : '  font-family: sans-serif;',
-  (window.svgweb) ? '  font-size: 14pt;' : '  font-size: 11pt;', 
+  (window.svgweb) ? '  font-size: 14pt;' : '  font-size: 11pt;',
   '  border: none;',
   '  outline: none;',
   '  width: 100%',
