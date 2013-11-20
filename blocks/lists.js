@@ -162,14 +162,10 @@ Blockly.Blocks.lists_repeat = {
     this.setHelpUrl(Blockly.Msg.LISTS_REPEAT_HELPURL);
     this.setHSV(40, 1.0, 0.99);
     this.setOutput(true, 'Array');
-    this.appendValueInput('ITEM')
-        .appendTitle(Blockly.Msg.LISTS_REPEAT_INPUT_WITH);
-    this.appendValueInput('NUM')
-        .setCheck('Number')
-        .appendTitle(Blockly.Msg.LISTS_REPEAT_INPUT_REPEATED);
-    this.appendDummyInput()
-        .appendTitle(Blockly.Msg.LISTS_REPEAT_INPUT_TIMES);
-    this.setInputsInline(true);
+    this.interpolateMsg(Blockly.Msg.LISTS_REPEAT_TITLE,
+                        ['ITEM', null, Blockly.ALIGN_RIGHT],
+                        ['NUM', 'Number', Blockly.ALIGN_RIGHT],
+                        Blockly.ALIGN_RIGHT);
     this.setTooltip(Blockly.Msg.LISTS_REPEAT_TOOLTIP);
   }
 };
@@ -192,10 +188,9 @@ Blockly.Blocks.lists_isEmpty = {
   init: function() {
     this.setHelpUrl(Blockly.Msg.LISTS_IS_EMPTY_HELPURL);
     this.setHSV(40, 1.0, 0.99);
-    this.appendValueInput('VALUE')
-        .setCheck(['Array', 'String']);
-    this.appendDummyInput()
-        .appendTitle(Blockly.Msg.LISTS_INPUT_IS_EMPTY);
+    this.interpolateMsg(Blockly.Msg.LISTS_IS_EMPTY_TITLE,
+                        ['VALUE', ['Array', 'String'], Blockly.ALIGN_RIGHT],
+                        Blockly.ALIGN_RIGHT)
     this.setInputsInline(true);
     this.setOutput(true, 'Boolean');
     this.setTooltip(Blockly.Msg.LISTS_TOOLTIP);
@@ -247,8 +242,12 @@ Blockly.Blocks.lists_getIndex = {
         .appendTitle(modeMenu, 'MODE')
         .appendTitle('', 'SPACE');
     this.appendDummyInput('AT');
+    if (Blockly.Msg.LISTS_GET_INDEX_TAIL) {
+      this.appendDummyInput('TAIL')
+          .appendTitle(Blockly.Msg.LISTS_GET_INDEX_TAIL);
+    }
     this.setInputsInline(true);
-    this.setOutput(true, 'Number');
+    this.setOutput(true);
     this.updateAt(true);
     // Assign 'this' to a variable for use in the tooltip closure below.
     var thisBlock = this;
@@ -295,11 +294,16 @@ Blockly.Blocks.lists_getIndex = {
   },
   updateAt: function(isAt) {
     // Create or delete an input for the numeric index.
-    // Destroy old 'AT' input.
+    // Destroy old 'AT' and 'ORDINAL' inputs.
     this.removeInput('AT');
+    this.removeInput('ORDINAL', true);
     // Create either a value 'AT' input or a dummy input.
     if (isAt) {
       this.appendValueInput('AT').setCheck('Number');
+      if (Blockly.Msg.ORDINAL_NUMBER_SUFFIX) {
+        this.appendDummyInput('ORDINAL')
+            .appendTitle(Blockly.Msg.ORDINAL_NUMBER_SUFFIX);
+      }
     } else {
       this.appendDummyInput('AT');
     }
@@ -316,6 +320,9 @@ Blockly.Blocks.lists_getIndex = {
       return undefined;
     });
     this.getInput('AT').appendTitle(menu, 'WHERE');
+    if (Blockly.Msg.LISTS_GET_INDEX_TAIL) {
+      this.moveInputBefore('TAIL', null);
+    }
   }
 };
 
@@ -371,11 +378,16 @@ Blockly.Blocks.lists_setIndex = {
   },
   updateAt: function(isAt) {
     // Create or delete an input for the numeric index.
-    // Destroy old 'AT' input.
+    // Destroy old 'AT' and 'ORDINAL' input.
     this.removeInput('AT');
+    this.removeInput('ORDINAL', true);
     // Create either a value 'AT' input or a dummy input.
     if (isAt) {
       this.appendValueInput('AT').setCheck('Number');
+      if (Blockly.Msg.ORDINAL_NUMBER_SUFFIX) {
+        this.appendDummyInput('ORDINAL')
+            .appendTitle(Blockly.Msg.ORDINAL_NUMBER_SUFFIX);
+      }
     } else {
       this.appendDummyInput('AT');
     }
@@ -392,6 +404,10 @@ Blockly.Blocks.lists_setIndex = {
       return undefined;
     });
     this.moveInputBefore('AT', 'TO');
+    if (this.getInput('ORDINAL')) {
+      this.moveInputBefore('ORDINAL', 'TO');
+    }
+
     this.getInput('AT').appendTitle(menu, 'WHERE');
   }
 };
@@ -414,6 +430,10 @@ Blockly.Blocks.lists_getSublist = {
         .appendTitle(Blockly.Msg.LISTS_GET_SUBLIST_INPUT_IN_LIST);
     this.appendDummyInput('AT1');
     this.appendDummyInput('AT2');
+    if (Blockly.Msg.LISTS_GET_SUBLIST_TAIL) {
+      this.appendDummyInput('TAIL')
+          .appendTitle(Blockly.Msg.LISTS_GET_SUBLIST_TAIL);
+    }
     this.setInputsInline(true);
     this.setOutput(true, 'Array');
     this.updateAt(1, true);
@@ -432,17 +452,22 @@ Blockly.Blocks.lists_getSublist = {
   domToMutation: function(xmlElement) {
     // Restore the block shape.
     var isAt1 = (xmlElement.getAttribute('at1') == 'true');
-    var isAt2 = (xmlElement.getAttribute('at1') == 'true');
+    var isAt2 = (xmlElement.getAttribute('at2') == 'true');
     this.updateAt(1, isAt1);
     this.updateAt(2, isAt2);
   },
   updateAt: function(n, isAt) {
     // Create or delete an input for the numeric index.
-    // Destroy old 'AT' input.
+    // Destroy old 'AT' and 'ORDINAL' inputs.
     this.removeInput('AT' + n);
+    this.removeInput('ORDINAL' + n, true);
     // Create either a value 'AT' input or a dummy input.
     if (isAt) {
       this.appendValueInput('AT' + n).setCheck('Number');
+      if (Blockly.Msg.ORDINAL_NUMBER_SUFFIX) {
+        this.appendDummyInput('ORDINAL' + n)
+            .appendTitle(Blockly.Msg.ORDINAL_NUMBER_SUFFIX);
+      }
     } else {
       this.appendDummyInput('AT' + n);
     }
@@ -460,10 +485,15 @@ Blockly.Blocks.lists_getSublist = {
       return undefined;
     });
     this.getInput('AT' + n)
-        .appendTitle(Blockly.Msg['LISTS_GET_SUBLIST_INPUT_AT' + n])
         .appendTitle(menu, 'WHERE' + n);
     if (n == 1) {
       this.moveInputBefore('AT1', 'AT2');
+      if (this.getInput('ORDINAL1')) {
+        this.moveInputBefore('ORDINAL1', 'AT2');
+      }
+    }
+    if (Blockly.Msg.LISTS_GET_SUBLIST_TAIL) {
+      this.moveInputBefore('TAIL', null);
     }
   }
 };

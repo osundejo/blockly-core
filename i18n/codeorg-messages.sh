@@ -10,7 +10,7 @@ fi
 locales_dir=$1/locales
 core_dir=.
 
-locales=$(ls $locales_dir | grep -v 'en-US')
+locales=$(ls $locales_dir)
 
 for locale in $locales; do
 

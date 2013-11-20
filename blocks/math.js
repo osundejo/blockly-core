@@ -45,11 +45,11 @@ Blockly.Blocks.math_arithmetic = {
   // Basic arithmetic operator.
   init: function() {
     var OPERATORS =
-        [['+', 'ADD'],
-         ['-', 'MINUS'],
-         ['\u00D7', 'MULTIPLY'],
-         ['\u00F7', 'DIVIDE'],
-         ['^', 'POWER']];
+        [[Blockly.Msg.MATH_ADDITION_SYMBOL, 'ADD'],
+         [Blockly.Msg.MATH_SUBTRACTION_SYMBOL, 'MINUS'],
+         [Blockly.Msg.MATH_MULTIPLICATION_SYMBOL, 'MULTIPLY'],
+         [Blockly.Msg.MATH_DIVISION_SYMBOL, 'DIVIDE'],
+         [Blockly.Msg.MATH_POWER_SYMBOL, 'POWER']];
     this.setHelpUrl(Blockly.Msg.MATH_ARITHMETIC_HELPURL);
     this.setHSV(258, 0.35, 0.62);
     this.setOutput(true, 'Number');
@@ -114,12 +114,12 @@ Blockly.Blocks.math_trig = {
   // Trigonometry operators.
   init: function() {
     var OPERATORS =
-        [['sin', 'SIN'],
-         ['cos', 'COS'],
-         ['tan', 'TAN'],
-         ['asin', 'ASIN'],
-         ['acos', 'ACOS'],
-         ['atan', 'ATAN']];
+        [[Blockly.Msg.MATH_TRIG_SIN, 'SIN'],
+         [Blockly.Msg.MATH_TRIG_COS, 'COS'],
+         [Blockly.Msg.MATH_TRIG_TAN, 'TAN'],
+         [Blockly.Msg.MATH_TRIG_ASIN, 'ASIN'],
+         [Blockly.Msg.MATH_TRIG_ACOS, 'ACOS'],
+         [Blockly.Msg.MATH_TRIG_ATAN, 'ATAN']];
     this.setHelpUrl(Blockly.Msg.MATH_TRIG_HELPURL);
     this.setHSV(258, 0.35, 0.62);
     this.setOutput(true, 'Number');
@@ -311,13 +311,10 @@ Blockly.Blocks.math_modulo = {
     this.setHelpUrl(Blockly.Msg.MATH_MODULO_HELPURL);
     this.setHSV(258, 0.35, 0.62);
     this.setOutput(true, 'Number');
-    this.appendValueInput('DIVIDEND')
-        .setCheck('Number')
-        .appendTitle(Blockly.Msg.MATH_MODULO_INPUT_DIVIDEND);
-    this.appendValueInput('DIVISOR')
-        .setCheck('Number')
-        .setAlign(Blockly.ALIGN_RIGHT)
-        .appendTitle('\u00F7');
+    this.interpolateMsg(Blockly.Msg.MATH_MODULO_TITLE,
+                        ['DIVIDEND', 'Number', Blockly.ALIGN_RIGHT],
+                        ['DIVISOR', 'Number', Blockly.ALIGN_RIGHT],
+                        Blockly.ALIGN_RIGHT);
     this.setInputsInline(true);
     this.setTooltip(Blockly.Msg.MATH_MODULO_TOOLTIP);
   }
@@ -329,15 +326,11 @@ Blockly.Blocks.math_constrain = {
     this.setHelpUrl(Blockly.Msg.MATH_CONSTRAIN_HELPURL);
     this.setHSV(258, 0.35, 0.62);
     this.setOutput(true, 'Number');
-    this.appendValueInput('VALUE')
-        .setCheck('Number')
-        .appendTitle(Blockly.Msg.MATH_CONSTRAIN_INPUT_CONSTRAIN);
-    this.appendValueInput('LOW')
-        .setCheck('Number')
-        .appendTitle(Blockly.Msg.MATH_CONSTRAIN_INPUT_LOW);
-    this.appendValueInput('HIGH')
-        .setCheck('Number')
-        .appendTitle(Blockly.Msg.MATH_CONSTRAIN_INPUT_HIGH);
+    this.interpolateMsg(Blockly.Msg.MATH_CONSTRAIN_TITLE,
+                        ['VALUE', 'Number', Blockly.ALIGN_RIGHT],
+                        ['LOW', 'Number', Blockly.ALIGN_RIGHT],
+                        ['HIGH', 'Number', Blockly.ALIGN_RIGHT],
+                        Blockly.ALIGN_RIGHT)
     this.setInputsInline(true);
     this.setTooltip(Blockly.Msg.MATH_CONSTRAIN_TOOLTIP);
   }
@@ -349,13 +342,10 @@ Blockly.Blocks.math_random_int = {
     this.setHelpUrl(Blockly.Msg.MATH_RANDOM_INT_HELPURL);
     this.setHSV(258, 0.35, 0.62);
     this.setOutput(true, 'Number');
-    this.appendValueInput('FROM')
-        .setCheck('Number')
-        .appendTitle(Blockly.Msg.MATH_RANDOM_INT_INPUT_FROM);
-    this.appendValueInput('TO')
-        .setCheck('Number')
-        .setAlign(Blockly.ALIGN_RIGHT)
-        .appendTitle(Blockly.Msg.MATH_RANDOM_INT_INPUT_TO);
+    this.interpolateMsg(Blockly.Msg.MATH_RANDOM_INT_TITLE,
+                        ['FROM', 'Number', Blockly.ALIGN_RIGHT],
+                        ['TO', 'Number', Blockly.ALIGN_RIGHT],
+                        Blockly.ALIGN_RIGHT);
     this.setInputsInline(true);
     this.setTooltip(Blockly.Msg.MATH_RANDOM_INT_TOOLTIP);
   }
