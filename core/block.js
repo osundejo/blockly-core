@@ -29,8 +29,7 @@ goog.require('Blockly.BlockSvg');
 goog.require('Blockly.Blocks');
 goog.require('Blockly.Comment');
 goog.require('Blockly.Connection');
-// Disabling blockly context menu for code.org by commenting out this line:
-// goog.require('Blockly.ContextMenu');
+goog.require('Blockly.ContextMenu');
 goog.require('Blockly.Input');
 goog.require('Blockly.Msg');
 goog.require('Blockly.Mutator');
@@ -65,7 +64,8 @@ Blockly.Block = function(workspace, prototypeName, htmlId) {
   this.rendered = false;
   this.disabled = false;
   this.tooltip = '';
-  this.contextMenu = true;
+  // Disabling block context menus for code.org
+  this.contextMenu = false;
 
   this.parentBlock_ = null;
   this.childBlocks_ = [];
