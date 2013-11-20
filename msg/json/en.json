@@ -59,7 +59,7 @@
     "LANG_CONTROLS_FOR_INPUT_TO": "to",
     "LANG_CONTROLS_FOR_INPUT_BY": "by",
     "LANG_CONTROLS_FOR_TAIL": "",
-    "LANG_CONTROLS_FOREACH_HELPURL": "https://code.google.com/p/blockly/wiki/Loops#for_each for each block",
+    "LANG_CONTROLS_FOREACH_HELPURL": "https://code.google.com/p/blockly/wiki/Loops#for_each",
     "LANG_CONTROLS_FOREACH_INPUT_ITEM": "for each item",
     "LANG_CONTROLS_FOREACH_INPUT_INLIST": "in list",
     "LANG_CONTROLS_FOREACH_INPUT_INLIST_TAIL": "",
