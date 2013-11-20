@@ -23,6 +23,7 @@
  */
 'use strict';
 
+goog.require('goog.dom');
 goog.require('goog.dom.xml');
 goog.provide('Blockly.Xml');
 
@@ -285,7 +286,7 @@ Blockly.Xml.domToBlock_ = function(workspace, xmlBlock) {
         }
         break;
       case 'comment':
-        block.setCommentText(xmlChild.textContent);
+        block.setCommentText(goog.dom.getTextContent(xmlChild));
         var visible = xmlChild.getAttribute('pinned');
         if (visible) {
           block.comment.setVisible(visible == 'true');
@@ -297,7 +298,7 @@ Blockly.Xml.domToBlock_ = function(workspace, xmlBlock) {
         }
         break;
       case 'title':
-        block.setTitleValue(xmlChild.textContent, name);
+        block.setTitleValue(goog.dom.getTextContent(xmlChild), name);
         break;
       case 'value':
       case 'statement':

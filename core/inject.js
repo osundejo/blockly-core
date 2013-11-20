@@ -54,8 +54,8 @@ Blockly.inject = function(container, options) {
 
   if (window.svgweb) {
     // in case of flash fallback we should wait for svg to be fully loaded
-      // 'this' refers to your SVG root
-    Blockly.createDom_(container, this);
+    // 'this' refers to your SVG root
+    Blockly.createDom_(container, svg);
     Blockly.init_();
     if (options.onLoadCallback) {
       options.onLoadCallback();
@@ -275,10 +275,7 @@ Blockly.createDom_ = function(container, svg) {
     svg.appendChild(Blockly.ContextMenu.createDom());
   }
 
-  // The SVG is now fully assembled.  Add it to the container.
-  if (!window.svgweb) {
-    container.appendChild(svg);
-  }
+  container.appendChild(svg);
 
   Blockly.svg = svg;
   Blockly.svgResize();

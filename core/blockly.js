@@ -50,6 +50,7 @@ goog.require('goog.dom');
 goog.require('goog.color');
 goog.require('goog.events');
 goog.require('goog.string');
+goog.require('goog.style');
 goog.require('goog.ui.ColorPicker');
 goog.require('goog.ui.tree.TreeControl');
 goog.require('goog.userAgent');
@@ -242,13 +243,13 @@ Blockly.svgSize = function() {
  */
 Blockly.svgResize = function() {
   var svg = Blockly.svg;
-  var style = window.getComputedStyle(svg);
+  var style = goog.style.getComputedStyle(svg);
   var borderWidth = 0;
   if (style) {
     borderWidth = parseInt(style.borderLeftWidth, 10) +
                   parseInt(style.borderRightWidth, 10);
   }
-  var div = svg.parentNode;
+  var div = svg.parentElement;
   var width = div.offsetWidth - borderWidth;
   var height = div.offsetHeight;
   if (svg.cachedWidth_ != width) {

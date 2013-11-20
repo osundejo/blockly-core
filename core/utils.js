@@ -24,6 +24,7 @@
  * @author fraser@google.com (Neil Fraser)
  */
 
+goog.require('goog.events');
 goog.provide('Blockly.utils');
 
 Blockly.setAttributeNS = function(element, ns, name, value) {
@@ -190,7 +191,10 @@ Blockly.fireUiEvent = function(element, eventName) {
   } else if (doc.createEventObject) {
     // MSIE
     var evt = doc.createEventObject();
-    element.fireEvent('on' + eventName, evt);
+    if (element === window) {
+      element = document.body;  // IE hack.
+    }
+    goog.events.dispatchEvent(element, 'on' + eventName);
   } else {
     throw 'FireEvent: No event creation mechanism.';
   }
