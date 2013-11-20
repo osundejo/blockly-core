@@ -26,7 +26,10 @@
 
 goog.provide('Blockly.utils');
 
-
+Blockly.setAttributeNS = function(element, ns, name, value) {
+  Blockly.ieVersion() == 8 ? element.setAttribute(name, value) :
+                             element.setAttributeNS(ns, name, value);
+};
 Blockly.createElementNS = function (ns, name) {
   var element;
   if (Blockly.ieVersion() == 8) {
@@ -279,7 +282,7 @@ Blockly.getAbsoluteXY_ = function(element) {
  */
 Blockly.createSvgElement = function(name, attrs, opt_parent) {
   var e = /** @type {!SVGElement} */ (
-      Blockly.createElementNS(Blockly.SVG_NS, name));
+      document.createElementNS(Blockly.SVG_NS, name));
   for (var key in attrs) {
     e.setAttribute(key, attrs[key]);
   }
