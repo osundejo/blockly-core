@@ -29,7 +29,8 @@ goog.require('Blockly.BlockSvg');
 goog.require('Blockly.Blocks');
 goog.require('Blockly.Comment');
 goog.require('Blockly.Connection');
-goog.require('Blockly.ContextMenu');
+// Disabling blockly context menu for code.org by commenting out this line:
+// goog.require('Blockly.ContextMenu');
 goog.require('Blockly.Input');
 goog.require('Blockly.Msg');
 goog.require('Blockly.Mutator');
