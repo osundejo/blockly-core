@@ -38,9 +38,9 @@ goog.require('goog.cssom');
 Blockly.Css.inject = function() {
   var text = Blockly.Css.CONTENT.join('\n');
   // Expand paths.
-  text = text.replace(
-      '%HAND_OPEN_PATH%',
-      Blockly.assetUrl('media/handopen.cur'));
+  text = text
+    .replace('%HAND_OPEN_PATH%', Blockly.assetUrl('media/handopen.cur'))
+    .replace('%TREE_PATH%', Blockly.assetUrl('media/tree.png'));
   goog.cssom.addCssText(text);
 };
 
@@ -310,7 +310,7 @@ Blockly.Css.CONTENT = [
   '  height: 16px;',
   '  width: 16px;',
   '  vertical-align: middle;',
-  '  background-image: url(<<<PATH>>>/media/tree.png);',
+  '  background-image: url(%TREE_PATH%);',
   '}',
   '.blocklyTreeIconClosedLtr {',
   '  background-position: -32px -1px;',
