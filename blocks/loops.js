@@ -51,13 +51,9 @@ Blockly.Blocks.controls_repeat_ext = {
   init: function() {
     this.setHelpUrl(Blockly.Msg.CONTROLS_REPEAT_HELPURL);
     this.setHSV(322, 0.90, 0.95);
-    this.appendValueInput('TIMES')
-        .setCheck('Number')
-        .appendTitle(Blockly.Msg.CONTROLS_REPEAT_TITLE_REPEAT)
-    if (Blockly.Msg.CONTROLS_REPEAT_TITLE_TIMES) {
-      this.appendDummyInput()
-          .appendTitle(Blockly.Msg.CONTROLS_REPEAT_TITLE_TIMES);
-    }
+    this.interpolateMsg(Blockly.Msg.CONTROLS_REPEAT_TITLE,
+                        ['TIMES', 'Number', Blockly.ALIGN_RIGHT],
+                        Blockly.ALIGN_RIGHT);
     this.appendStatementInput('DO')
         .appendTitle(Blockly.Msg.CONTROLS_REPEAT_INPUT_DO);
     this.setPreviousStatement(true);
@@ -103,22 +99,11 @@ Blockly.Blocks.controls_for = {
     this.appendDummyInput()
         .appendTitle(Blockly.Msg.CONTROLS_FOR_INPUT_WITH)
         .appendTitle(new Blockly.FieldVariable(null), 'VAR');
-    this.appendValueInput('FROM')
-        .setCheck('Number')
-        .setAlign(Blockly.ALIGN_RIGHT)
-        .appendTitle(Blockly.Msg.CONTROLS_FOR_INPUT_FROM);
-    this.appendValueInput('TO')
-        .setCheck('Number')
-        .setAlign(Blockly.ALIGN_RIGHT)
-        .appendTitle(Blockly.Msg.CONTROLS_FOR_INPUT_TO);
-    this.appendValueInput('BY')
-        .setCheck('Number')
-        .setAlign(Blockly.ALIGN_RIGHT)
-        .appendTitle(Blockly.Msg.CONTROLS_FOR_INPUT_BY);
-    if (Blockly.Msg.CONTROLS_FOR_TAIL) {
-      this.appendDummyInput()
-          .appendTitle(Blockly.Msg.CONTROLS_FOR_TAIL);
-    }
+    this.interpolateMsg(Blockly.Msg.CONTROLS_FOR_INPUT_FROM_TO_BY,
+                        ['FROM', 'Number', Blockly.ALIGN_RIGHT],
+                        ['TO', 'Number', Blockly.ALIGN_RIGHT],
+                        ['BY', 'Number', Blockly.ALIGN_RIGHT],
+                        Blockly.ALIGN_RIGHT);
     this.appendStatementInput('DO')
         .appendTitle(Blockly.Msg.CONTROLS_FOR_INPUT_DO);
     this.setPreviousStatement(true);
@@ -221,6 +206,7 @@ Blockly.Blocks.controls_flow_statements = {
     var block = this;
     do {
       if (block.type == 'controls_repeat' ||
+          block.type == 'controls_repeat_ext' ||
           block.type == 'controls_forEach' ||
           block.type == 'controls_for' ||
           block.type == 'controls_whileUntil') {

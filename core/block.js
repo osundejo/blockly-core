@@ -36,6 +36,7 @@ goog.require('Blockly.Mutator');
 goog.require('Blockly.Warning');
 goog.require('Blockly.Workspace');
 goog.require('Blockly.Xml');
+goog.require('goog.asserts');
 goog.require('goog.string');
 goog.require('goog.Timer');
 
@@ -1440,6 +1441,55 @@ Blockly.Block.prototype.appendStatementInput = function(name) {
  */
 Blockly.Block.prototype.appendDummyInput = function(opt_name) {
   return this.appendInput_(Blockly.DUMMY_INPUT, opt_name || '');
+};
+
+/**
+ * Interpolate a message string, creating titles and inputs.
+ * @param {string} msg The message string to parse.  %1, %2, etc. are symbols
+ *     for value inputs.
+ * @param {!Array.<string|number>|number} var_args A series of tuples that
+ *     each specify the value inputs to create.  Each tuple has three values:
+ *     the input name, its check type, and its title's alignment.  The last
+ *     parameter is not a tuple, but just an alignment for any trailing dummy
+ *     input.  This last parameter is mandatory; there may be any number of
+ *     tuples (though the number of tuples must match the symbols in msg).
+ */
+Blockly.Block.prototype.interpolateMsg = function(msg, var_args) {
+  // Remove the msg from the start and the dummy alignment from the end of args.
+  goog.asserts.assertString(msg);
+  var dummyAlign = arguments.length - 1;
+  goog.asserts.assertNumber(dummyAlign);
+
+  var tokens = msg.split(/(%\d)/);
+  for (var i = 0; i < tokens.length; i += 2) {
+    var text = goog.string.trim(tokens[i]);
+    var symbol = tokens[i + 1];
+    if (symbol) {
+      // Value input.
+      var digit = window.parseInt(symbol.charAt(1), 10);
+      var tuple = arguments[digit];
+      goog.asserts.assertArray(tuple,
+          'Message symbol "%s" is out of range.', symbol);
+      this.appendValueInput(tuple[0])
+          .setCheck(tuple[1])
+          .setAlign(tuple[2])
+          .appendTitle(text);
+      arguments[digit] = null;  // Inputs may not be reused.
+    } else if (text) {
+      // Trailing dummy input.
+      this.appendDummyInput()
+          .setAlign(dummyAlign)
+          .appendTitle(text);
+    }
+  }
+  // Verify that all inputs were used.
+  for (var i = 1; i < arguments.length - 1; i++) {
+    goog.asserts.assert(arguments[i] === null,
+        'Input "%%s" not used in message: "%s"', i, msg);
+  }
+  // Make the inputs inline unless there is only one input and
+  // no text follows it.
+  this.setInputsInline(!msg.match(/%1\s*$/))
 };
 
 /**
