@@ -626,8 +626,6 @@ Blockly.loadAudio_ = function(filenames, name) {
  */
 Blockly.playAudio = function(name, options) {
   var sound = Blockly.SOUNDS_[name];
-  // Precaution since we are about to lose our pointer to this sound.
-  Blockly.stopLoopingAudio(name);
   var options = options || {};
   if (sound) {
     if (window.AudioContext) {
