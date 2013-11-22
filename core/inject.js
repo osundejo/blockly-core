@@ -275,8 +275,12 @@ Blockly.createDom_ = function(container, svg) {
     svg.appendChild(Blockly.ContextMenu.createDom());
   }
 
-  container.appendChild(svg);
-
+  // The SVG is now fully assembled.  Add it to the container.
+  if (svgweb) {
+    svgweb.appendChild(svg, container);
+  } else {
+    container.appendChild(svg);
+  }
   Blockly.svg = svg;
   Blockly.svgResize();
 
