@@ -651,13 +651,21 @@ Blockly.playAudio = function(name, options) {
  */
 Blockly.stopLoopingAudio = function(name) {
   var sound = Blockly.SOUNDS_[name];
-  if (sound) {
-    if (sound.stop) {  // Newest web audio pseudo-standard.
-      sound.stop(0);
-    } else if (sound.noteOff) {  // Older web audio.
-      sound.noteOff(0);
-    } else {  // html 5 audio.
-      sound.pause();
+  try {
+    if (sound) {
+      if (sound.stop) {  // Newest web audio pseudo-standard.
+        sound.stop(0);
+      } else if (sound.noteOff) {  // Older web audio.
+        sound.noteOff(0);
+      } else {  // html 5 audio.
+        sound.pause();
+      }
+    }
+  } catch (e) {
+    if (e.name === 'InvalidStateError') {
+      // Stopping a sound that hasn't been played.
+    } else {
+      throw e;
     }
   }
 };
