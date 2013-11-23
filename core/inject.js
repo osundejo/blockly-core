@@ -49,26 +49,10 @@ Blockly.inject = function(container, options) {
       'xmlns:html': 'http://www.w3.org/1999/xhtml',
       'xmlns:xlink': 'http://www.w3.org/1999/xlink',
       'version': '1.1',
+      'id': 'blocklySvg',
       'class': 'blocklySvg'
   }, null);
-
-  if (window.svgweb) {
-    // in case of flash fallback we should wait for svg to be fully loaded
-    // 'this' refers to your SVG root
-    Blockly.createDom_(container, svg);
-    Blockly.init_();
-    if (options.onLoadCallback) {
-      options.onLoadCallback();
-    }
-
-    container.appendChild(svg);
-  } else {
-    Blockly.createDom_(container, svg);
-    Blockly.init_();
-    if (options.onLoadCallback) {
-      options.onLoadCallback();
-    }
-  }
+  Blockly.createDom_(container, svg, options.onLoadCallback);
 };
 
 /**
@@ -137,7 +121,7 @@ Blockly.parseOptions_ = function(options) {
  * @param {!Element} container Containing element.
  * @private
  */
-Blockly.createDom_ = function(container, svg) {
+Blockly.createDom_ = function(container, svg, callback) {
   // Sadly browsers (Chrome vs Firefox) are currently inconsistent in laying
   // out content in RTL mode.  Therefore Blockly forces the use of LTR,
   // then manually positions content in RTL as needed.
@@ -275,14 +259,27 @@ Blockly.createDom_ = function(container, svg) {
     svg.appendChild(Blockly.ContextMenu.createDom());
   }
 
-  container.appendChild(svg);
+  var svgLoad = function() {
+    Blockly.svg = document.getElementById('blocklySvg');
+    Blockly.svgResize();
+    // Create an HTML container for popup overlays (e.g. editor widgets).
+    Blockly.WidgetDiv.DIV = goog.dom.createDom('div', 'blocklyWidgetDiv');
+    document.body.appendChild(Blockly.WidgetDiv.DIV);
+    if (callback) {
+      callback();
+    }
+  };
 
-  Blockly.svg = svg;
-  Blockly.svgResize();
-
-  // Create an HTML container for popup overlays (e.g. editor widgets).
-  Blockly.WidgetDiv.DIV = goog.dom.createDom('div', 'blocklyWidgetDiv');
-  document.body.appendChild(Blockly.WidgetDiv.DIV);
+  // The SVG is now fully assembled.  Add it to the container.
+  if (svgweb) {
+    svg.addEventListener('SVGLoad', svgLoad);
+    Blockly.init_();  // Problem here
+    svgweb.appendChild(svg, container);
+    console.log('container: ' + container);
+  } else {
+    container.appendChild(svg)
+    svgLoad();
+  }
 };
 
 
