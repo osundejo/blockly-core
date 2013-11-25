@@ -47,9 +47,11 @@ Blockly.FieldDropdown = function(menuGenerator, opt_changeHandler) {
   this.value_ = firstTuple[1];
 
   // Add dropdown arrow: "option ▾" (LTR) or "▾ אופציה" (RTL)
-  this.arrow_ = Blockly.createSvgElement('tspan', {}, null);
+  this.arrow_ = Blockly.createSvgElement('tspan',
+                                         {'class': 'blocklyArrow'},
+                                         null);
   this.arrow_.appendChild(document.createTextNode(
-      Blockly.RTL ? '\u25BE ' : ' \u25BE'));
+      Blockly.RTL ? '\u25BC ' : ' \u25BC'));
 
   // Call parent's constructor.
   Blockly.FieldDropdown.superClass_.constructor.call(this, firstTuple[0]);
