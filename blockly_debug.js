@@ -2887,8 +2887,8 @@ Blockly.FieldDropdown = function(menuGenerator, opt_changeHandler) {
   this.trimOptions_();
   var firstTuple = this.getOptions_()[0];
   this.value_ = firstTuple[1];
-  this.arrow_ = Blockly.createSvgElement("tspan", {}, null);
-  this.arrow_.appendChild(document.createTextNode(Blockly.RTL ? "\u25be " : " \u25be"));
+  this.arrow_ = Blockly.createSvgElement("tspan", {"class":"blocklyArrow"}, null);
+  this.arrow_.appendChild(document.createTextNode(Blockly.RTL ? "\u25bc " : " \u25bc"));
   Blockly.FieldDropdown.superClass_.constructor.call(this, firstTuple[0])
 };
 goog.inherits(Blockly.FieldDropdown, Blockly.Field);
@@ -17229,9 +17229,9 @@ Blockly.Css.CONTENT = [".blocklySvg {", "  cursor: pointer;", "  background-colo
 "/* Category tree in Toolbox. */", ".blocklyToolboxDiv {", "  background-color: #ddd;", "  display: none;", "  overflow-x: visible;", "  overflow-y: auto;", "  position: absolute;", "}", ".blocklyTreeRoot {", "  padding: 4px 0;", "}", ".blocklyTreeRoot:focus {", "  outline: none;", "}", ".blocklyTreeRow {", "  line-height: 22px;", "  height: 22px;", "  padding-right: 1em;", "  white-space: nowrap;", "}", '.blocklyToolboxDiv[dir="RTL"] .blocklyTreeRow {', "  padding-right: 0;", "  padding-left: 1em !important;", 
 "}", ".blocklyTreeRow:hover {", "  background-color: #e4e4e4;", "}", ".blocklyTreeIcon {", "  height: 16px;", "  width: 16px;", "  vertical-align: middle;", "  background-image: url(%TREE_PATH%);", "}", ".blocklyTreeIconClosedLtr {", "  background-position: -32px -1px;", "}", ".blocklyTreeIconClosedRtl {", "  background-position: 0px -1px;", "}", ".blocklyTreeIconOpen {", "  background-position: -16px -1px;", "}", ".blocklyTreeIconNone {", "  background-position: -48px -1px;", "}", ".blocklyTreeSelected>.blocklyTreeIconClosedLtr {", 
 "  background-position: -32px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconClosedRtl {", "  background-position: 0px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconOpen {", "  background-position: -16px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconNone {", "  background-position: -48px -17px;", "}", ".blocklyTreeLabel {", "  cursor: default;", "  font-family: sans-serif;", "  font-size: 16px;", "  padding: 0 3px;", "  vertical-align: middle;", "}", ".blocklyTreeSelected  {", "  background-color: #57e !important;", 
-"}", ".blocklyTreeSelected .blocklyTreeLabel {", "  color: #fff;", "}", "", "/*", " * Copyright 2007 The Closure Library Authors. All Rights Reserved.", " *", " * Use of this source code is governed by the Apache License, Version 2.0.", " * See the COPYING file for details.", " */", "", "/* Author: pupius@google.com (Daniel Pupius) */", "", "/*", " Styles to make the colorpicker look like the old gmail color picker", " NOTE: without CSS scoping this will override styles defined in palette.css", "*/", 
-".goog-palette {", "  outline: none;", "  cursor: default;", "}", "", ".goog-palette-table {", "  border: 1px solid #666;", "  border-collapse: collapse;", "}", "", ".goog-palette-cell {", "  height: 13px;", "  width: 15px;", "  margin: 0;", "  border: 0;", "  text-align: center;", "  vertical-align: middle;", "  border-right: 1px solid #666;", "  font-size: 1px;", "}", "", ".goog-palette-colorswatch {", "  position: relative;", "  height: 13px;", "  width: 15px;", "  border: 1px solid #666;", "}", 
-"", ".goog-palette-cell-hover .goog-palette-colorswatch {", "  border: 1px solid #FFF;", "}", "", ".goog-palette-cell-selected .goog-palette-colorswatch {", "  border: 1px solid #000;", "  color: #fff;", "}", ""];
+"}", ".blocklyTreeSelected .blocklyTreeLabel {", "  color: #fff;", "}", ".blocklyArrow {", "   font-size: 80%;", " }", "", "/*", " * Copyright 2007 The Closure Library Authors. All Rights Reserved.", " *", " * Use of this source code is governed by the Apache License, Version 2.0.", " * See the COPYING file for details.", " */", "", "/* Author: pupius@google.com (Daniel Pupius) */", "", "/*", " Styles to make the colorpicker look like the old gmail color picker", " NOTE: without CSS scoping this will override styles defined in palette.css", 
+"*/", ".goog-palette {", "  outline: none;", "  cursor: default;", "}", "", ".goog-palette-table {", "  border: 1px solid #666;", "  border-collapse: collapse;", "}", "", ".goog-palette-cell {", "  height: 13px;", "  width: 15px;", "  margin: 0;", "  border: 0;", "  text-align: center;", "  vertical-align: middle;", "  border-right: 1px solid #666;", "  font-size: 1px;", "}", "", ".goog-palette-colorswatch {", "  position: relative;", "  height: 13px;", "  width: 15px;", "  border: 1px solid #666;", 
+"}", "", ".goog-palette-cell-hover .goog-palette-colorswatch {", "  border: 1px solid #FFF;", "}", "", ".goog-palette-cell-selected .goog-palette-colorswatch {", "  border: 1px solid #000;", "  color: #fff;", "}", ""];
 goog.provide("Blockly.inject");
 goog.require("Blockly.Css");
 goog.require("goog.dom");
@@ -17954,7 +17954,6 @@ Blockly.loadAudio_ = function(filenames, name) {
 };
 Blockly.playAudio = function(name, options) {
   var sound = Blockly.SOUNDS_[name];
-  Blockly.stopLoopingAudio(name);
   var options = options || {};
   if(sound) {
     if(window.AudioContext) {
@@ -17973,15 +17972,22 @@ Blockly.playAudio = function(name, options) {
 };
 Blockly.stopLoopingAudio = function(name) {
   var sound = Blockly.SOUNDS_[name];
-  if(sound) {
-    if(sound.stop) {
-      sound.stop(0)
-    }else {
-      if(sound.noteOff) {
-        sound.noteOff(0)
+  try {
+    if(sound) {
+      if(sound.stop) {
+        sound.stop(0)
       }else {
-        sound.pause()
+        if(sound.noteOff) {
+          sound.noteOff(0)
+        }else {
+          sound.pause()
+        }
       }
+    }
+  }catch(e) {
+    if(e.name === "InvalidStateError") {
+    }else {
+      throw e;
     }
   }
 };
