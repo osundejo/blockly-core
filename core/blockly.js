@@ -571,13 +571,13 @@ Blockly.createSoundFromBuffer_ = function(options) {
 
 /**
  * Load an audio file using the web audio api.
- * @param {!Array.<string>} filenames List of file types.
+ * @param {string} filename The filename to load.
  * @param {string} name Name of sound.
  * @private
  */
-Blockly.loadWebAudio_ = function(filenames, name) {
+Blockly.loadWebAudio_ = function(filename, name) {
   var request = new XMLHttpRequest();
-  request.open('GET', filenames[0], true);  // Hack, just use first file (mp3).
+  request.open('GET', filename, true);
   request.responseType = 'arraybuffer';
   request.onload = Blockly.onSoundLoad_(request, name);
   request.send();
@@ -592,28 +592,30 @@ Blockly.loadWebAudio_ = function(filenames, name) {
  * @private
  */
 Blockly.loadAudio_ = function(filenames, name) {
-  if (window.AudioContext) {
-    Blockly.loadWebAudio_(filenames, name);
-  } else if (window.Audio && filenames.length) {
-    var sound;
+  // Use html5 for audio test even if we use web audio to play.
+  if (window.Audio && filenames.length) {
     var audioTest = new window.Audio();
-    for (var i = 0; i < filenames.length; i++) {
-      var filename = filenames[i];
+    for (var i = 0, filename; filename = filenames[i]; i++) {
       var ext = filename.match(/\.(\w+)(\?.*)?$/);
       if (ext && audioTest.canPlayType('audio/' + ext[1])) {
-        // Found an audio format we can play.
-        sound = new window.Audio(filename);
         break;
       }
     }
-
-    if (sound && sound.play) {
-      // Precache audio except for IE9.
-      if (!goog.userAgent.isDocumentMode(9)) {
-        sound.play();
-        sound.pause();
+    // We have a playable filename or undefined.
+    if (filename) {
+      if (window.AudioContext) {
+        Blockly.loadWebAudio_(filename, name);
+      } else {
+        var sound = new window.Audio(filename);
+        if (sound && sound.play) {
+          // Precache audio except for IE9.
+          if (!goog.userAgent.isDocumentMode(9)) {
+            sound.play();
+            sound.pause();
+          }
+          Blockly.SOUNDS_[name] = sound;
+        }
       }
-      Blockly.SOUNDS_[name] = sound;
     }
   }
 };
