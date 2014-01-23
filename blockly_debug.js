@@ -15039,7 +15039,6 @@ Blockly.Toolbox.TreeNode.prototype.getExpandIconElement = function() {
   return null
 };
 Blockly.Toolbox.TreeNode.prototype.onMouseDown = function(e) {
-  alert("mousedown");
   if(this.hasChildren() && this.isUserCollapsible_) {
     this.toggle();
     this.select()
