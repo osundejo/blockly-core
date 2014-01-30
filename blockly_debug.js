@@ -14995,16 +14995,17 @@ Blockly.Toolbox.TreeControl = function(html, opt_config, opt_domHelper) {
 goog.inherits(Blockly.Toolbox.TreeControl, goog.ui.tree.TreeControl);
 Blockly.Toolbox.TreeControl.prototype.enterDocument = function() {
   Blockly.Toolbox.TreeControl.superClass_.enterDocument.call(this);
-  if(goog.events.BrowserFeature.TOUCH_ENABLED || "onpointerdown" in window) {
+  if(goog.events.BrowserFeature.TOUCH_ENABLED || ("onpointerdown" in window || "onmspointerdown" in window)) {
     var el = this.getElement();
     Blockly.bindEvent_(el, goog.events.EventType.TOUCHSTART, this, this.handleTouchEvent_);
-    Blockly.bindEvent_(el, goog.events.EventType.POINTERDOWN, this, this.handleTouchEvent_)
+    Blockly.bindEvent_(el, goog.events.EventType.POINTERDOWN, this, this.handleTouchEvent_);
+    Blockly.bindEvent_(el, goog.events.EventType.MSPOINTERDOWN, this, this.handleTouchEvent_)
   }
 };
 Blockly.Toolbox.TreeControl.prototype.handleTouchEvent_ = function(e) {
   e.preventDefault();
   var node = this.getNodeFromEvent_(e);
-  if(node && (e.type === goog.events.EventType.TOUCHSTART || e.type === goog.events.EventType.POINTERDOWN)) {
+  if(node && (e.type === goog.events.EventType.TOUCHSTART || (e.type === goog.events.EventType.POINTERDOWN || e.type === goog.events.EventType.MSPOINTERDOWN))) {
     window.setTimeout(function() {
       node.onMouseDown(e)
     }, 1)
