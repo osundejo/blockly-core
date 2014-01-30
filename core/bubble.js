@@ -57,18 +57,7 @@ Blockly.Bubble = function(workspace, content, shape,
 
   this.setAnchorLocation(anchorX, anchorY);
   if (!bubbleWidth || !bubbleHeight) {
-      if (navigator.userAgent.indexOf("MSIE") >= 0 || navigator.userAgent.indexOf("Trident") >= 0) {
-          (this.content_).style.display = "inline";   /* reqd for IE */
-          var bBox = {
-              x: (this.content_).getBBox().x,
-              y: (this.content_).getBBox().y,
-              width: (this.content_).scrollWidth,
-              height: (this.content_).scrollHeight
-          };
-      }
-      else {
-          var bBox = /** @type {SVGLocatable} */ (this.content_).getBBox();
-      }
+    var bBox = this.workspace_.getCanvas().getBBox();
     bubbleWidth = bBox.width + 2 * Blockly.Bubble.BORDER_WIDTH;
     bubbleHeight = bBox.height + 2 * Blockly.Bubble.BORDER_WIDTH;
   }
