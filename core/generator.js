@@ -61,14 +61,18 @@ Blockly.Generator.get = function(name) {
 /**
  * Generate code for all blocks in the workspace to the specified language.
  * @param {string} name Language name (e.g. 'JavaScript').
+ * @param {string} type Only return code under top blocks of this type
  * @return {string} Generated code.
  */
-Blockly.Generator.workspaceToCode = function(name) {
+Blockly.Generator.workspaceToCode = function(name, type) {
   var code = [];
   var generator = Blockly.Generator.get(name);
   generator.init();
   var blocks = Blockly.mainWorkspace.getTopBlocks(true);
   for (var x = 0, block; block = blocks[x]; x++) {
+    if (type && block.type != type) {
+      continue;
+    }
     var line = generator.blockToCode(block);
     if (line instanceof Array) {
       // Value blocks return tuples of code and operator order.
