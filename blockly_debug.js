@@ -15003,6 +15003,7 @@ Blockly.Toolbox.TreeControl.prototype.handleTouchEvent_ = function(e) {
   e.preventDefault();
   var node = this.getNodeFromEvent_(e);
   if(node && (e.type === goog.events.EventType.TOUCHSTART || (e.type === goog.events.EventType.POINTERDOWN || e.type === goog.events.EventType.MSPOINTERDOWN))) {
+    e.stopImmediatePropagation();
     window.setTimeout(function() {
       node.onMouseDown(e)
     }, 1)
