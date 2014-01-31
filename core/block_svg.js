@@ -35,10 +35,9 @@ goog.require('goog.userAgent');
  */
 Blockly.BlockSvg = function(block) {
   this.block_ = block;
-  var options = {};
-  if (block.htmlId) {
-    options.id = block.htmlId;
-  }
+  var options = {
+    "block-id": block.id
+  };
   // Create core elements for the block.
   this.svgGroup_ = Blockly.createSvgElement('g', options, null);
   this.svgPathDark_ = Blockly.createSvgElement('path',
