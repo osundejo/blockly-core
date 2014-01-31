@@ -2185,10 +2185,7 @@ goog.provide("Blockly.BlockSvg");
 goog.require("goog.userAgent");
 Blockly.BlockSvg = function(block) {
   this.block_ = block;
-  var options = {};
-  if(block.htmlId) {
-    options.id = block.htmlId
-  }
+  var options = {"block-id":block.id};
   this.svgGroup_ = Blockly.createSvgElement("g", options, null);
   this.svgPathDark_ = Blockly.createSvgElement("path", {"class":"blocklyPathDark", "transform":"translate(1, 1)"}, this.svgGroup_);
   this.svgPath_ = Blockly.createSvgElement("path", {"class":"blocklyPath"}, this.svgGroup_);
@@ -17850,12 +17847,15 @@ Blockly.Generator.get = function(name) {
   }
   return Blockly.Generator.languages[name]
 };
-Blockly.Generator.workspaceToCode = function(name) {
+Blockly.Generator.workspaceToCode = function(name, type) {
   var code = [];
   var generator = Blockly.Generator.get(name);
   generator.init();
   var blocks = Blockly.mainWorkspace.getTopBlocks(true);
   for(var x = 0, block;block = blocks[x];x++) {
+    if(type && block.type != type) {
+      continue
+    }
     var line = generator.blockToCode(block);
     if(line instanceof Array) {
       line = line[0]
