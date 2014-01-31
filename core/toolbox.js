@@ -239,6 +239,7 @@ Blockly.Toolbox.TreeControl.prototype.handleTouchEvent_ = function(e) {
                e.type === goog.events.EventType.MSPOINTERDOWN)) {
     // Fire asynchronously since onMouseDown takes long enough that the browser
     // would fire the default mouse event before this method returns.
+    e.stopImmediatePropagation();
     window.setTimeout(function() {
       node.onMouseDown(e);  // Same behavior for click and touch.
     }, 1);

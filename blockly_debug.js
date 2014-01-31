@@ -15006,6 +15006,7 @@ Blockly.Toolbox.TreeControl.prototype.handleTouchEvent_ = function(e) {
   e.preventDefault();
   var node = this.getNodeFromEvent_(e);
   if(node && (e.type === goog.events.EventType.TOUCHSTART || (e.type === goog.events.EventType.POINTERDOWN || e.type === goog.events.EventType.MSPOINTERDOWN))) {
+    e.stopImmediatePropagation();
     window.setTimeout(function() {
       node.onMouseDown(e)
     }, 1)
@@ -17850,12 +17851,15 @@ Blockly.Generator.get = function(name) {
   }
   return Blockly.Generator.languages[name]
 };
-Blockly.Generator.workspaceToCode = function(name) {
+Blockly.Generator.workspaceToCode = function(name, type) {
   var code = [];
   var generator = Blockly.Generator.get(name);
   generator.init();
   var blocks = Blockly.mainWorkspace.getTopBlocks(true);
   for(var x = 0, block;block = blocks[x];x++) {
+    if(type && block.type != type) {
+      continue
+    }
     var line = generator.blockToCode(block);
     if(line instanceof Array) {
       line = line[0]
