@@ -453,9 +453,18 @@ Blockly.Block.prototype.onMouseDown_ = function(e) {
     var xy = this.getRelativeToSurfaceXY();
     this.startDragX = xy.x;
     this.startDragY = xy.y;
-    // Record the current mouse position.
-    this.startDragMouseX = e.clientX;
-    this.startDragMouseY = e.clientY;
+
+    // If we were given the start drag location, use that.
+    if (e.startDragMouseX_ !== undefined && e.startDragMouseY_ !== undefined) {
+      this.startDragMouseX = e.startDragMouseX_;
+      this.startDragMouseY = e.startDragMouseY_;
+      e.startDragMouseX_ = undefined;
+      e.startDragMouseY_ = undefined;
+    } else {
+      // Record the current mouse position.
+      this.startDragMouseX = e.clientX;
+      this.startDragMouseY = e.clientY;
+    }
     Blockly.Block.dragMode_ = 1;
     Blockly.Block.onMouseUpWrapper_ = Blockly.bindEvent_(document,
         'mouseup', this, this.onMouseUp_);
