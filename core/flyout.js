@@ -524,6 +524,11 @@ Blockly.Flyout.prototype.onMouseMove_ = function(e) {
   // Still dragging within the sticky DRAG_RADIUS.
   var dr = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
   if (dr > Blockly.DRAG_RADIUS) {
+
+    // Pass through the start drag position.
+    e.startDragMouseX_ = Blockly.Flyout.startDragMouseX_;
+    e.startDragMouseY_ = Blockly.Flyout.startDragMouseY_;
+
     // Create the block.
     Blockly.Flyout.startFlyout_.createBlockFunc_(Blockly.Flyout.startBlock_)(e);
   }
