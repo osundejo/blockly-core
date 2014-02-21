@@ -148,7 +148,8 @@ Blockly.Xml.blockToDom_ = function(block) {
  */
 Blockly.Xml.domToText = function(dom) {
   var oSerializer = new XMLSerializer();
-  return oSerializer.serializeToString(dom);
+  var text = oSerializer.serializeToString(dom);
+  return text.replace(" xmlns=\"http://www.w3.org/1999/xhtml\"", "");
 };
 
 /**
