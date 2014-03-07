@@ -1,5 +1,4 @@
-Blockly Core
-============
+# Blockly Core
 
 This is a fork of [Blockly](https://code.google.com/p/blockly/) an open source visual programming environment.
 
