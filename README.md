@@ -7,7 +7,7 @@ This is a fork of [Blockly](https://code.google.com/p/blockly/) an open source v
 
 ```
 git clone https://github.com/code-dot-org/blockly-core.git
-svn checkout http://closure-library.googlecode.com/svn/trunk/ closure-library-read-only
+git clone https://code.google.com/p/closure-library/ closure-library-read-only
 cd blockly-core
 ./build.py
 ```
