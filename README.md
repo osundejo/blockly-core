@@ -12,7 +12,7 @@ cd blockly-core
 ./build.py
 ```
 
-__Note__: blockly-core/ and closure-library-read-only/ should be sibling directories.
+__Note__: blockly-core/ and closure-library-read-only/ must be sibling directories.
 
 
 ## Usage
