@@ -760,7 +760,14 @@ Blockly.Block.prototype.setDragging_ = function(adding) {
   }
   // Recurse through all blocks attached under this one.
   for (var x = 0; x < this.childBlocks_.length; x++) {
-    this.childBlocks_[x].setDragging_(adding);
+    var block = this.childBlocks_[x];
+    if (adding && !block.isMovable()) {
+      // Everything here and below is locked, detach and don't drag further children
+      block.unplug(false, false);
+      break;
+    }
+    
+    block.setDragging_(adding);
   }
 };
 
@@ -1045,6 +1052,7 @@ Blockly.Block.prototype.isMovable = function() {
  */
 Blockly.Block.prototype.setMovable = function(movable) {
   this.movable_ = movable;
+  this.svg_ && this.svg_.updateMovable();
 };
 
 /**

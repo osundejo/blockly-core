@@ -81,9 +81,13 @@ Blockly.BlockSvg.prototype.updateMovable = function() {
   if (this.block_.isMovable()) {
     Blockly.addClass_(/** @type {!Element} */ (this.svgGroup_),
                       'blocklyDraggable');
+    Blockly.removeClass_(/** @type {!Element} */ (this.svgGroup_),
+                      'blocklyUndraggable');
   } else {
     Blockly.removeClass_(/** @type {!Element} */ (this.svgGroup_),
                          'blocklyDraggable');
+    Blockly.addClass_(/** @type {!Element} */ (this.svgGroup_), 
+                         'blocklyUndraggable');
   }
 };
 
