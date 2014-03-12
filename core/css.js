@@ -67,7 +67,7 @@ Blockly.Css.CONTENT = [
   '     http://code.google.com/p/chromium/issues/detail?id=1446 */',
   '  cursor: url(%HAND_OPEN_PATH%) 8 5, auto;',
   '}',
-  '.blocklyUndraggable > path {',
+  '.blocklyUndraggable>path {',
   '  fill: url(#blocklyDisabledPattern)',
   '}',
   '.blocklyResizeSE {',
