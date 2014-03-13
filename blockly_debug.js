@@ -2341,11 +2341,6 @@ Blockly.BlockSvg.prototype.updateToColour_ = function(hexColour) {
   this.svgPathDark_.setAttribute("fill", goog.color.rgbArrayToHex(rgbDark));
   this.svgPath_.setAttribute("fill", hexColour)
 };
-Blockly.BlockSvg.prototype.removeStyling_ = function() {
-  this.svgPathLight_.removeAttribute("stroke");
-  this.svgPathDark_.removeAttribute("fill");
-  this.svgPath_.removeAttribute("fill")
-};
 Blockly.BlockSvg.prototype.updateDisabled = function() {
   if(this.block_.disabled || this.block_.getInheritedDisabled()) {
     Blockly.addClass_((this.svgGroup_), "blocklyDisabled");
@@ -11401,6 +11396,10 @@ Blockly.Block.prototype.moveConnections_ = function(dx, dy) {
   }
 };
 Blockly.Block.prototype.setDragging_ = function(adding) {
+  this.setDraggingHandleImmovable_(adding, function(block) {
+  })
+};
+Blockly.Block.prototype.setDraggingHandleImmovable_ = function(adding, immovableBlockHandler) {
   if(adding) {
     this.svg_.addDragging()
   }else {
@@ -11409,10 +11408,10 @@ Blockly.Block.prototype.setDragging_ = function(adding) {
   for(var x = 0;x < this.childBlocks_.length;x++) {
     var block = this.childBlocks_[x];
     if(adding && !block.isMovable()) {
-      block.unplug(false, false);
+      immovableBlockHandler(block);
       break
     }
-    block.setDragging_(adding)
+    block.setDraggingHandleImmovable_(adding, immovableBlockHandler)
   }
 };
 Blockly.Block.prototype.onMouseMove_ = function(e) {
@@ -11427,8 +11426,9 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
     var dr = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
     if(dr > Blockly.DRAG_RADIUS) {
       Blockly.Block.dragMode_ = 2;
+      var firstImmovableBlockHandler = this.generateReconnector_(this.previousConnection.targetConnection);
       this.setParent(null);
-      this.setDragging_(true)
+      this.setDraggingHandleImmovable_(true, firstImmovableBlockHandler)
     }
   }
   if(Blockly.Block.dragMode_ == 2) {
@@ -11467,6 +11467,14 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
     }
   }
   e.stopPropagation()
+};
+Blockly.Block.prototype.generateReconnector_ = function(earlierConnection) {
+  return function(block) {
+    if(block.previousConnection) {
+      block.setParent(null);
+      earlierConnection.connect(block.previousConnection)
+    }
+  }
 };
 Blockly.Block.prototype.bumpNeighbours_ = function() {
   if(Blockly.Block.dragMode_ != 0) {
