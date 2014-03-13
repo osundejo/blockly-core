@@ -807,7 +807,7 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
       // Switch to unrestricted dragging.
       Blockly.Block.dragMode_ = 2;
       // Push this block to the very top of the stack.
-      var firstImmovableBlockHandler = this.generateReconnector_(this.previousConnection.targetConnection);
+      var firstImmovableBlockHandler = this.generateReconnector_(this.previousConnection);
       this.setParent(null);
       this.setDraggingHandleImmovable_(true, firstImmovableBlockHandler);
     }
@@ -871,10 +871,15 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
  * @private
  */
 Blockly.Block.prototype.generateReconnector_ = function(earlierConnection) {
+  if (!earlierConnection || !earlierConnection.targetConnection) {
+    return function(block){};
+  }
+
+  var earlierNextConnection = earlierConnection.targetConnection;
   return function(block){
     if (block.previousConnection) {
       block.setParent(null);
-      earlierConnection.connect(block.previousConnection);
+      earlierNextConnection.connect(block.previousConnection);
     }
   };
 };

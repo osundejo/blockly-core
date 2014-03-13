@@ -11426,7 +11426,7 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
     var dr = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
     if(dr > Blockly.DRAG_RADIUS) {
       Blockly.Block.dragMode_ = 2;
-      var firstImmovableBlockHandler = this.generateReconnector_(this.previousConnection.targetConnection);
+      var firstImmovableBlockHandler = this.generateReconnector_(this.previousConnection);
       this.setParent(null);
       this.setDraggingHandleImmovable_(true, firstImmovableBlockHandler)
     }
@@ -11469,10 +11469,15 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
   e.stopPropagation()
 };
 Blockly.Block.prototype.generateReconnector_ = function(earlierConnection) {
+  if(!earlierConnection || !earlierConnection.targetConnection) {
+    return function(block) {
+    }
+  }
+  var earlierNextConnection = earlierConnection.targetConnection;
   return function(block) {
     if(block.previousConnection) {
       block.setParent(null);
-      earlierConnection.connect(block.previousConnection)
+      earlierNextConnection.connect(block.previousConnection)
     }
   }
 };
