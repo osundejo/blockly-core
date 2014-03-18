@@ -420,14 +420,16 @@ Blockly.BlockSvg.prototype.updateColour = function() {
     return;
   }
 
+  var hexColour;
+
   if (!this.block_.isMovable()) {
-    this.updateToColour_(Blockly.BlockSvg.DISABLED_COLOUR);
-    return;
+    hexColour = Blockly.BlockSvg.DISABLED_COLOUR;
+  } else {
+    hexColour = Blockly.makeColour(this.block_.getColour(),
+                                   this.block_.getSaturation(),
+                                   this.block_.getValue());
   }
 
-  var hexColour = Blockly.makeColour(this.block_.getColour(),
-                                     this.block_.getSaturation(),
-                                     this.block_.getValue());
   this.updateToColour_(hexColour);
 };
 
