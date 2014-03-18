@@ -92,11 +92,13 @@ Blockly.bindEvent_ = function(element, name, thisObject, func) {
   // Add equivalent touch event.
   if (name in Blockly.bindEvent_.TOUCH_MAP) {
     wrapFunc = function (e) {
-      var targetStyle = e.target.style;
-      if (targetStyle.touchAction) {  // required for IE 11+
-        targetStyle.touchAction = "none";
-      } else if (targetStyle.msTouchAction) {  // required for IE 10
-        targetStyle.msTouchAction = "none";
+      if (e.target && e.target.style) {
+        var targetStyle = e.target.style;
+        if (targetStyle.touchAction) {  // required for IE 11+
+          targetStyle.touchAction = "none";
+        } else if (targetStyle.msTouchAction) {  // required for IE 10
+          targetStyle.msTouchAction = "none";
+        }
       }
 
       // Punt on multitouch events.
