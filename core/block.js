@@ -753,14 +753,31 @@ Blockly.Block.prototype.moveConnections_ = function(dx, dy) {
  * @private
  */
 Blockly.Block.prototype.setDragging_ = function(adding) {
+  this.setDraggingHandleImmovable_(adding, null);
+};
+
+/**
+ * Recursively adds or removes the dragging class to this node and its children.
+ * @param {boolean} adding True if adding, false if removing.
+ * @param {function} immovableBlockHandler callback when immovable block is found
+ * @private
+ */
+Blockly.Block.prototype.setDraggingHandleImmovable_ = function(adding, immovableBlockHandler) {
   if (adding) {
     this.svg_.addDragging();
   } else {
     this.svg_.removeDragging();
   }
+
   // Recurse through all blocks attached under this one.
   for (var x = 0; x < this.childBlocks_.length; x++) {
-    this.childBlocks_[x].setDragging_(adding);
+    var block = this.childBlocks_[x];
+    if (adding && immovableBlockHandler !== null && !block.isMovable()) {
+      immovableBlockHandler(block);
+      break;
+    }
+    
+    block.setDraggingHandleImmovable_(adding, immovableBlockHandler);
   }
 };
 
@@ -790,8 +807,9 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
       // Switch to unrestricted dragging.
       Blockly.Block.dragMode_ = 2;
       // Push this block to the very top of the stack.
+      var firstImmovableBlockHandler = this.generateReconnector_(this.previousConnection);
       this.setParent(null);
-      this.setDragging_(true);
+      this.setDraggingHandleImmovable_(true, firstImmovableBlockHandler);
     }
   }
   if (Blockly.Block.dragMode_ == 2) {
@@ -844,6 +862,28 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
   }
   // This event has been handled.  No need to bubble up to the document.
   e.stopPropagation();
+};
+
+/**
+ * Generates a callback that takes in a block and connects its `previousConnection` to the given `earlierConnection`
+ * and disconnects any previous connection
+ * @param earlierConnection {Connection}
+ * @returns {Function}
+ * @private
+ */
+Blockly.Block.prototype.generateReconnector_ = function(earlierConnection) {
+  var earlierNextConnection;
+
+  if (earlierConnection && earlierConnection.targetConnection) {
+    earlierNextConnection = earlierConnection.targetConnection; 
+  }
+
+  return function(block){
+    if (block.previousConnection) {
+      block.setParent(null);
+      earlierNextConnection && earlierNextConnection.connect(block.previousConnection);
+    }
+  };
 };
 
 /**
@@ -1045,6 +1085,7 @@ Blockly.Block.prototype.isMovable = function() {
  */
 Blockly.Block.prototype.setMovable = function(movable) {
   this.movable_ = movable;
+  this.svg_ && this.svg_.updateMovable();
 };
 
 /**

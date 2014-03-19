@@ -59,6 +59,8 @@ Blockly.BlockSvg = function(block) {
  */
 Blockly.BlockSvg.INLINE = -1;
 
+Blockly.BlockSvg.DISABLED_COLOUR = '#808080';
+
 /**
  * Initialize the SVG representation with any block attributes which have
  * already been defined.
@@ -81,10 +83,15 @@ Blockly.BlockSvg.prototype.updateMovable = function() {
   if (this.block_.isMovable()) {
     Blockly.addClass_(/** @type {!Element} */ (this.svgGroup_),
                       'blocklyDraggable');
+    Blockly.removeClass_(/** @type {!Element} */ (this.svgGroup_),
+                      'blocklyUndraggable');
   } else {
     Blockly.removeClass_(/** @type {!Element} */ (this.svgGroup_),
                          'blocklyDraggable');
+    Blockly.addClass_(/** @type {!Element} */ (this.svgGroup_), 
+                         'blocklyUndraggable');
   }
+  this.updateColour();
 };
 
 /**
@@ -412,9 +419,25 @@ Blockly.BlockSvg.prototype.updateColour = function() {
     // Disabled blocks don't have colour.
     return;
   }
-  var hexColour = Blockly.makeColour(this.block_.getColour(),
-                                     this.block_.getSaturation(),
-                                     this.block_.getValue());
+
+  var hexColour;
+
+  if (!this.block_.isMovable()) {
+    hexColour = Blockly.BlockSvg.DISABLED_COLOUR;
+  } else {
+    hexColour = Blockly.makeColour(this.block_.getColour(),
+                                   this.block_.getSaturation(),
+                                   this.block_.getValue());
+  }
+
+  this.updateToColour_(hexColour);
+};
+
+/**
+ * @param {string} hexColour the colour to update to, in hexadecimal
+ * @private
+ */
+Blockly.BlockSvg.prototype.updateToColour_ = function(hexColour) {
   var rgb = goog.color.hexToRgb(hexColour);
   var rgbLight = goog.color.lighten(rgb, 0.3);
   var rgbDark = goog.color.darken(rgb, 0.4);

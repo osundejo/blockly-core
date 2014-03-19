@@ -2198,6 +2198,7 @@ Blockly.BlockSvg = function(block) {
   this.updateMovable()
 };
 Blockly.BlockSvg.INLINE = -1;
+Blockly.BlockSvg.DISABLED_COLOUR = "#808080";
 Blockly.BlockSvg.prototype.init = function() {
   var block = this.block_;
   this.updateColour();
@@ -2210,10 +2211,13 @@ Blockly.BlockSvg.prototype.init = function() {
 };
 Blockly.BlockSvg.prototype.updateMovable = function() {
   if(this.block_.isMovable()) {
-    Blockly.addClass_((this.svgGroup_), "blocklyDraggable")
+    Blockly.addClass_((this.svgGroup_), "blocklyDraggable");
+    Blockly.removeClass_((this.svgGroup_), "blocklyUndraggable")
   }else {
-    Blockly.removeClass_((this.svgGroup_), "blocklyDraggable")
+    Blockly.removeClass_((this.svgGroup_), "blocklyDraggable");
+    Blockly.addClass_((this.svgGroup_), "blocklyUndraggable")
   }
+  this.updateColour()
 };
 Blockly.BlockSvg.prototype.getRootElement = function() {
   return this.svgGroup_
@@ -2322,7 +2326,14 @@ Blockly.BlockSvg.prototype.updateColour = function() {
   if(this.block_.disabled) {
     return
   }
+  if(!this.block_.isMovable()) {
+    this.updateToColour_(Blockly.BlockSvg.DISABLED_COLOUR);
+    return
+  }
   var hexColour = Blockly.makeColour(this.block_.getColour(), this.block_.getSaturation(), this.block_.getValue());
+  this.updateToColour_(hexColour)
+};
+Blockly.BlockSvg.prototype.updateToColour_ = function(hexColour) {
   var rgb = goog.color.hexToRgb(hexColour);
   var rgbLight = goog.color.lighten(rgb, 0.3);
   var rgbDark = goog.color.darken(rgb, 0.4);
@@ -4154,13 +4165,6 @@ goog.math.isInt = function(num) {
 goog.math.isFiniteNumber = function(num) {
   return isFinite(num) && !isNaN(num)
 };
-goog.math.log10Floor = function(num) {
-  if(num > 0) {
-    var x = Math.round(Math.log(num) * Math.LOG10E);
-    return x - (Math.pow(10, x) > num)
-  }
-  return num == 0 ? -Infinity : NaN
-};
 goog.math.safeFloor = function(num, opt_epsilon) {
   goog.asserts.assert(!goog.isDef(opt_epsilon) || opt_epsilon > 0);
   return Math.floor(num + (opt_epsilon || 2E-15))
@@ -4246,18 +4250,6 @@ goog.math.Coordinate.prototype.scale = function(sx, opt_sy) {
   this.x *= sx;
   this.y *= sy;
   return this
-};
-goog.math.Coordinate.prototype.rotateRadians = function(radians, opt_center) {
-  var center = opt_center || new goog.math.Coordinate(0, 0);
-  var x = this.x;
-  var y = this.y;
-  var cos = Math.cos(radians);
-  var sin = Math.sin(radians);
-  this.x = (x - center.x) * cos - (y - center.y) * sin + center.x;
-  this.y = (x - center.x) * sin + (y - center.y) * cos + center.y
-};
-goog.math.Coordinate.prototype.rotateDegrees = function(degrees, opt_center) {
-  this.rotateRadians(goog.math.toRadians(degrees), opt_center)
 };
 goog.provide("goog.math.Box");
 goog.require("goog.math.Coordinate");
@@ -6820,10 +6812,9 @@ goog.events.ListenerMap.prototype.getListenerCount = function() {
   return count
 };
 goog.events.ListenerMap.prototype.add = function(type, listener, callOnce, opt_useCapture, opt_listenerScope) {
-  var typeStr = type.toString();
-  var listenerArray = this.listeners[typeStr];
+  var listenerArray = this.listeners[type];
   if(!listenerArray) {
-    listenerArray = this.listeners[typeStr] = [];
+    listenerArray = this.listeners[type] = [];
     this.typeCount_++
   }
   var listenerObj;
@@ -6834,25 +6825,24 @@ goog.events.ListenerMap.prototype.add = function(type, listener, callOnce, opt_u
       listenerObj.callOnce = false
     }
   }else {
-    listenerObj = new goog.events.Listener(listener, null, this.src, typeStr, !!opt_useCapture, opt_listenerScope);
+    listenerObj = new goog.events.Listener(listener, null, this.src, type, !!opt_useCapture, opt_listenerScope);
     listenerObj.callOnce = callOnce;
     listenerArray.push(listenerObj)
   }
   return listenerObj
 };
 goog.events.ListenerMap.prototype.remove = function(type, listener, opt_useCapture, opt_listenerScope) {
-  var typeStr = type.toString();
-  if(!(typeStr in this.listeners)) {
+  if(!(type in this.listeners)) {
     return false
   }
-  var listenerArray = this.listeners[typeStr];
+  var listenerArray = this.listeners[type];
   var index = goog.events.ListenerMap.findListenerIndex_(listenerArray, listener, opt_useCapture, opt_listenerScope);
   if(index > -1) {
     var listenerObj = listenerArray[index];
     listenerObj.markAsRemoved();
     goog.array.removeAt(listenerArray, index);
     if(listenerArray.length == 0) {
-      delete this.listeners[typeStr];
+      delete this.listeners[type];
       this.typeCount_--
     }
     return true
@@ -6875,10 +6865,9 @@ goog.events.ListenerMap.prototype.removeByKey = function(listener) {
   return removed
 };
 goog.events.ListenerMap.prototype.removeAll = function(opt_type) {
-  var typeStr = opt_type && opt_type.toString();
   var count = 0;
   for(var type in this.listeners) {
-    if(!typeStr || type == typeStr) {
+    if(!opt_type || type == opt_type) {
       var listenerArray = this.listeners[type];
       for(var i = 0;i < listenerArray.length;i++) {
         ++count;
@@ -6891,7 +6880,7 @@ goog.events.ListenerMap.prototype.removeAll = function(opt_type) {
   return count
 };
 goog.events.ListenerMap.prototype.getListeners = function(type, capture) {
-  var listenerArray = this.listeners[type.toString()];
+  var listenerArray = this.listeners[type];
   var rv = [];
   if(listenerArray) {
     for(var i = 0;i < listenerArray.length;++i) {
@@ -6904,7 +6893,7 @@ goog.events.ListenerMap.prototype.getListeners = function(type, capture) {
   return rv
 };
 goog.events.ListenerMap.prototype.getListener = function(type, listener, capture, opt_listenerScope) {
-  var listenerArray = this.listeners[type.toString()];
+  var listenerArray = this.listeners[type];
   var i = -1;
   if(listenerArray) {
     i = goog.events.ListenerMap.findListenerIndex_(listenerArray, listener, capture, opt_listenerScope)
@@ -6913,11 +6902,10 @@ goog.events.ListenerMap.prototype.getListener = function(type, listener, capture
 };
 goog.events.ListenerMap.prototype.hasListener = function(opt_type, opt_capture) {
   var hasType = goog.isDef(opt_type);
-  var typeStr = hasType ? opt_type.toString() : "";
   var hasCapture = goog.isDef(opt_capture);
   return goog.object.some(this.listeners, function(listenerArray, type) {
     for(var i = 0;i < listenerArray.length;++i) {
-      if((!hasType || listenerArray[i].type == typeStr) && (!hasCapture || listenerArray[i].capture == opt_capture)) {
+      if((!hasType || listenerArray[i].type == opt_type) && (!hasCapture || listenerArray[i].capture == opt_capture)) {
         return true
       }
     }
@@ -11408,13 +11396,22 @@ Blockly.Block.prototype.moveConnections_ = function(dx, dy) {
   }
 };
 Blockly.Block.prototype.setDragging_ = function(adding) {
+  this.setDraggingHandleImmovable_(adding, function(block) {
+  })
+};
+Blockly.Block.prototype.setDraggingHandleImmovable_ = function(adding, immovableBlockHandler) {
   if(adding) {
     this.svg_.addDragging()
   }else {
     this.svg_.removeDragging()
   }
   for(var x = 0;x < this.childBlocks_.length;x++) {
-    this.childBlocks_[x].setDragging_(adding)
+    var block = this.childBlocks_[x];
+    if(adding && !block.isMovable()) {
+      immovableBlockHandler(block);
+      break
+    }
+    block.setDraggingHandleImmovable_(adding, immovableBlockHandler)
   }
 };
 Blockly.Block.prototype.onMouseMove_ = function(e) {
@@ -11429,8 +11426,9 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
     var dr = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
     if(dr > Blockly.DRAG_RADIUS) {
       Blockly.Block.dragMode_ = 2;
+      var firstImmovableBlockHandler = this.generateReconnector_(this.previousConnection);
       this.setParent(null);
-      this.setDragging_(true)
+      this.setDraggingHandleImmovable_(true, firstImmovableBlockHandler)
     }
   }
   if(Blockly.Block.dragMode_ == 2) {
@@ -11469,6 +11467,19 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
     }
   }
   e.stopPropagation()
+};
+Blockly.Block.prototype.generateReconnector_ = function(earlierConnection) {
+  if(!earlierConnection || !earlierConnection.targetConnection) {
+    return function(block) {
+    }
+  }
+  var earlierNextConnection = earlierConnection.targetConnection;
+  return function(block) {
+    if(block.previousConnection) {
+      block.setParent(null);
+      earlierNextConnection.connect(block.previousConnection)
+    }
+  }
 };
 Blockly.Block.prototype.bumpNeighbours_ = function() {
   if(Blockly.Block.dragMode_ != 0) {
@@ -11580,7 +11591,8 @@ Blockly.Block.prototype.isMovable = function() {
   return this.movable_ && !Blockly.readOnly
 };
 Blockly.Block.prototype.setMovable = function(movable) {
-  this.movable_ = movable
+  this.movable_ = movable;
+  this.svg_ && this.svg_.updateMovable()
 };
 Blockly.Block.prototype.isEditable = function() {
   return this.editable_ && !Blockly.readOnly
@@ -12950,8 +12962,10 @@ goog.iter.map = function(iterable, f, opt_obj) {
   var iterator = goog.iter.toIterator(iterable);
   var newIter = new goog.iter.Iterator;
   newIter.next = function() {
-    var val = iterator.next();
-    return f.call(opt_obj, val, undefined, iterator)
+    while(true) {
+      var val = iterator.next();
+      return f.call(opt_obj, val, undefined, iterator)
+    }
   };
   return newIter
 };
@@ -16883,7 +16897,6 @@ goog.ui.PaletteRenderer.prototype.createRow = function(cells, dom) {
 goog.ui.PaletteRenderer.prototype.createCell = function(node, dom) {
   var cell = dom.createDom(goog.dom.TagName.TD, {"class":goog.getCssName(this.getCssClass(), "cell"), "id":goog.getCssName(this.getCssClass(), "cell-") + goog.ui.PaletteRenderer.cellId_++}, node);
   goog.a11y.aria.setRole(cell, goog.a11y.aria.Role.GRIDCELL);
-  goog.a11y.aria.setState(cell, goog.a11y.aria.State.SELECTED, false);
   if(!goog.dom.getTextContent(cell) && !goog.a11y.aria.getLabel(cell)) {
     var ariaLabelForCell = this.findAriaLabelForCell_(cell);
     if(ariaLabelForCell) {
@@ -16974,8 +16987,7 @@ goog.ui.PaletteRenderer.prototype.getCellForItem = function(node) {
 goog.ui.PaletteRenderer.prototype.selectCell = function(palette, node, select) {
   if(node) {
     var cell = (node.parentNode);
-    goog.dom.classlist.enable(cell, goog.getCssName(this.getCssClass(), "cell-selected"), select);
-    goog.a11y.aria.setState(cell, goog.a11y.aria.State.SELECTED, select)
+    goog.dom.classlist.enable(cell, goog.getCssName(this.getCssClass(), "cell-selected"), select)
   }
 };
 goog.ui.PaletteRenderer.prototype.getCssClass = function() {
@@ -16993,7 +17005,7 @@ goog.require("goog.ui.Control");
 goog.require("goog.ui.PaletteRenderer");
 goog.require("goog.ui.SelectionModel");
 goog.ui.Palette = function(items, opt_renderer, opt_domHelper) {
-  goog.ui.Palette.base(this, "constructor", items, opt_renderer || goog.ui.PaletteRenderer.getInstance(), opt_domHelper);
+  goog.base(this, items, opt_renderer || goog.ui.PaletteRenderer.getInstance(), opt_domHelper);
   this.setAutoStates(goog.ui.Component.State.CHECKED | goog.ui.Component.State.SELECTED | goog.ui.Component.State.OPENED, false);
   this.currentCellControl_ = new goog.ui.Palette.CurrentCell_;
   this.currentCellControl_.setParentEventTarget(this);
@@ -17055,7 +17067,7 @@ goog.ui.Palette.prototype.performActionInternal = function(e) {
   var item = this.getHighlightedItem();
   if(item) {
     this.setSelectedItem(item);
-    return goog.ui.Palette.base(this, "performActionInternal", e)
+    return goog.base(this, "performActionInternal", e)
   }
   return false
 };
@@ -17185,7 +17197,7 @@ goog.ui.Palette.prototype.highlightIndex_ = function(index, highlight) {
   }
 };
 goog.ui.Palette.prototype.setHighlighted = function(highlight) {
-  goog.ui.Palette.base(this, "setHighlighted", highlight);
+  goog.base(this, "setHighlighted", highlight);
   if(highlight && this.highlightedIndex_ == -1) {
     this.setHighlightedIndex(this.lastHighlightedIndex_ > -1 ? this.lastHighlightedIndex_ : 0)
   }else {
@@ -17216,7 +17228,7 @@ goog.ui.Palette.prototype.adjustSize_ = function() {
   }
 };
 goog.ui.Palette.CurrentCell_ = function() {
-  goog.ui.Palette.CurrentCell_.base(this, "constructor", null);
+  goog.base(this, null);
   this.setDispatchTransitionEvents(goog.ui.Component.State.HOVER, true)
 };
 goog.inherits(goog.ui.Palette.CurrentCell_, goog.ui.Control);
@@ -18185,21 +18197,21 @@ Blockly.Css.inject = function() {
   goog.cssom.addCssText(text)
 };
 Blockly.Css.CONTENT = [".blocklySvg {", "  cursor: pointer;", "  background-color: #fff;", "  border: 1px solid #ddd;", " -ms-touch-action: none;", " touch-action: none;", " overflow: hidden;", "}", ".blocklyWidgetDiv {", "  position: absolute;", "  display: none;", "  z-index: 999;", "}", ".blocklyDraggable {", "  /* Hotspot coordinates are baked into the CUR file, but they are still", "     required in the CSS due to a Chrome bug.", "     http://code.google.com/p/chromium/issues/detail?id=1446 */", 
-"  cursor: url(%HAND_OPEN_PATH%) 8 5, auto;", "}", ".blocklyResizeSE {", "  fill: #aaa;", "  cursor: se-resize;", "}", ".blocklyResizeSW {", "  fill: #aaa;", "  cursor: sw-resize;", "}", ".blocklyResizeLine {", "  stroke-width: 1;", "  stroke: #888;", "}", ".blocklyHighlightedConnectionPath {", "  stroke-width: 4px;", "  stroke: #fc3;", "  fill: none;", "}", ".blocklyPathLight {", "  fill: none;", "  stroke-width: 2;", "  stroke-linecap: round;", "}", ".blocklySelected>.blocklyPath {", "  stroke-width: 3px;", 
-"  stroke: #fc3;", "}", ".blocklySelected>.blocklyPathLight {", "  display: none;", "}", ".blocklyDragging>.blocklyPath,", ".blocklyDragging>.blocklyPathLight {", "  fill-opacity: 0.8;", "  stroke-opacity: 0.8;", "}", ".blocklyDragging>.blocklyPathDark {", "  display: none;", "}", ".blocklyDisabled>.blocklyPath {", "  fill-opacity: 0.50;", "  stroke-opacity: 0.50;", "}", ".blocklyDisabled>.blocklyPathLight,", ".blocklyDisabled>.blocklyPathDark {", "  display: none;", "}", ".blocklyText {", "  cursor: default;", 
-"  font-family: sans-serif;", "  font-size: 11pt;", "  fill: #fff;", "}", ".blocklyNonEditableText>text {", "  pointer-events: none;", "}", ".blocklyNonEditableText>rect,", ".blocklyEditableText>rect {", "  fill: #fff;", "  fill-opacity: 0.6;", "}", ".blocklyNonEditableText>text,", ".blocklyEditableText>text {", "  fill: #000;", "}", ".blocklyEditableText:hover>rect {", "  stroke-width: 2;", "  stroke: #fff;", "}", "/*", " * Don't allow users to select text.  It gets annoying when trying to", " * drag a block and selected text moves instead.", 
-" */", ".blocklySvg text {", "  -moz-user-select: none;", "  -webkit-user-select: none;", "  user-select: none;", "  cursor: inherit;", "}", "", ".blocklyHidden {", "  display: none;", "}", ".blocklyFieldDropdown:not(.blocklyHidden) {", "  display: block;", "}", ".blocklyTooltipBackground {", "  fill: #ffffc7;", "  stroke-width: 1px;", "  stroke: #d8d8d8;", "}", ".blocklyTooltipShadow,", ".blocklyContextMenuShadow,", ".blocklyDropdownMenuShadow {", "  fill: #bbb;", "  filter: url(#blocklyShadowFilter);", 
-"}", ".blocklyTooltipText {", "  font-family: sans-serif;", "  font-size: 9pt;", "  fill: #000;", "}", "", ".blocklyIconShield {", "  cursor: default;", "  fill: #00c;", "  stroke-width: 1px;", "  stroke: #ccc;", "}", ".blocklyIconGroup:hover>.blocklyIconShield {", "  fill: #00f;", "  stroke: #fff;", "}", ".blocklyIconGroup:hover>.blocklyIconMark {", "  fill: #fff;", "}", ".blocklyIconMark {", "  cursor: default !important;", "  font-family: sans-serif;", "  font-size: 9pt;", "  font-weight: bold;", 
-"  fill: #ccc;", "  text-anchor: middle;", "}", ".blocklyWarningBody {", "}", ".blocklyMinimalBody {", "  margin: 0;", "  padding: 0;", "}", ".blocklyCommentTextarea {", "  margin: 0;", "  padding: 2px;", "  border: 0;", "  resize: none;", "  background-color: #ffc;", "}", ".blocklyHtmlInput {", "  font-family: sans-serif;", "  font-size: 11pt;", "  border: none;", "  outline: none;", "  width: 100%", "}", ".blocklyContextMenuBackground,", ".blocklyMutatorBackground {", "  fill: #fff;", "  stroke-width: 1;", 
-"  stroke: #ddd;", "}", ".blocklyContextMenuOptions>.blocklyMenuDiv,", ".blocklyContextMenuOptions>.blocklyMenuDivDisabled,", ".blocklyDropdownMenuOptions>.blocklyMenuDiv {", "  fill: #fff;", "}", ".blocklyContextMenuOptions>.blocklyMenuDiv:hover>rect,", ".blocklyDropdownMenuOptions>.blocklyMenuDiv:hover>rect {", "  fill: #57e;", "}", ".blocklyMenuSelected>rect {", "  fill: #57e;", "}", ".blocklyMenuText {", "  cursor: default !important;", "  font-family: sans-serif;", "  font-size: 15px; /* All context menu sizes are based on pixels. */", 
-"  fill: #000;", "}", ".blocklyContextMenuOptions>.blocklyMenuDiv:hover>.blocklyMenuText,", ".blocklyDropdownMenuOptions>.blocklyMenuDiv:hover>.blocklyMenuText {", "  fill: #fff;", "}", ".blocklyMenuSelected>.blocklyMenuText {", "  fill: #fff;", "}", ".blocklyMenuDivDisabled>.blocklyMenuText {", "  fill: #ccc;", "}", ".blocklyFlyoutBackground {", "  fill: #ddd;", "  fill-opacity: 0.8;", "}", ".blocklyColourBackground {", "  fill: #666;", "}", ".blocklyScrollbarBackground {", "  fill: #fff;", "  stroke-width: 1;", 
-"  stroke: #e4e4e4;", "}", ".blocklyScrollbarKnob {", "  fill: #ccc;", "}", ".blocklyScrollbarBackground:hover+.blocklyScrollbarKnob,", ".blocklyScrollbarKnob:hover {", "  fill: #bbb;", "}", ".blocklyInvalidInput {", "  background: #faa;", "}", ".blocklyAngleCircle {", "  stroke: #444;", "  stroke-width: 1;", "  fill: #ddd;", "  fill-opacity: 0.8;", "}", ".blocklyAngleMarks {", "  stroke: #444;", "  stroke-width: 1;", "}", ".blocklyAngleGuage {", "  fill: #d00;", "  fill-opacity: 0.8;  ", "}", "", 
-"/* Category tree in Toolbox. */", ".blocklyToolboxDiv {", "  background-color: #ddd;", "  display: none;", "  overflow-x: visible;", "  overflow-y: auto;", "  position: absolute;", "}", ".blocklyTreeRoot {", "  padding: 4px 0;", "}", ".blocklyTreeRoot:focus {", "  outline: none;", "}", ".blocklyTreeRow {", "  line-height: 22px;", "  height: 22px;", "  padding-right: 1em;", "  white-space: nowrap;", "}", '.blocklyToolboxDiv[dir="RTL"] .blocklyTreeRow {', "  padding-right: 0;", "  padding-left: 1em !important;", 
-"}", ".blocklyTreeRow:hover {", "  background-color: #e4e4e4;", "}", ".blocklyTreeIcon {", "  height: 16px;", "  width: 16px;", "  vertical-align: middle;", "  background-image: url(%TREE_PATH%);", "}", ".blocklyTreeIconClosedLtr {", "  background-position: -32px -1px;", "}", ".blocklyTreeIconClosedRtl {", "  background-position: 0px -1px;", "}", ".blocklyTreeIconOpen {", "  background-position: -16px -1px;", "}", ".blocklyTreeIconNone {", "  background-position: -48px -1px;", "}", ".blocklyTreeSelected>.blocklyTreeIconClosedLtr {", 
-"  background-position: -32px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconClosedRtl {", "  background-position: 0px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconOpen {", "  background-position: -16px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconNone {", "  background-position: -48px -17px;", "}", ".blocklyTreeLabel {", "  cursor: default;", "  font-family: sans-serif;", "  font-size: 16px;", "  padding: 0 3px;", "  vertical-align: middle;", "}", ".blocklyTreeSelected  {", "  background-color: #57e !important;", 
-"}", ".blocklyTreeSelected .blocklyTreeLabel {", "  color: #fff;", "}", ".blocklyArrow {", "   font-size: 80%;", " }", "", "/*", " * Copyright 2007 The Closure Library Authors. All Rights Reserved.", " *", " * Use of this source code is governed by the Apache License, Version 2.0.", " * See the COPYING file for details.", " */", "", "/* Author: pupius@google.com (Daniel Pupius) */", "", "/*", " Styles to make the colorpicker look like the old gmail color picker", " NOTE: without CSS scoping this will override styles defined in palette.css", 
-"*/", ".goog-palette {", "  outline: none;", "  cursor: default;", "}", "", ".goog-palette-table {", "  border: 1px solid #666;", "  border-collapse: collapse;", "}", "", ".goog-palette-cell {", "  height: 25px;", "  width: 25px;", "  margin: 0;", "  border: 0;", "  text-align: center;", "  vertical-align: middle;", "  border-right: 1px solid #666;", "  font-size: 1px;", "}", "", ".goog-palette-colorswatch {", "  position: relative;", "  height: 25px;", "  width: 25px;", "  border: 1px solid #666;", 
-"}", "", ".goog-palette-cell-hover .goog-palette-colorswatch {", "  border: 1px solid #FFF;", "}", "", ".goog-palette-cell-selected .goog-palette-colorswatch {", "  border: 1px solid #000;", "  color: #fff;", "}", ""];
+"  cursor: url(%HAND_OPEN_PATH%) 8 5, auto;", "}", ".blocklyResizeSE {", "  fill: #aaa;", "  cursor: se-resize;", "}", ".blocklyResizeSW {", "  fill: #aaa;", "  cursor: sw-resize;", "}", ".blocklyResizeLine {", "  stroke-width: 1;", "  stroke: #888;", "}", ".blocklyHighlightedConnectionPath {", "  stroke-width: 4px;", "  stroke: #fc3;", "  fill: none;", "}", ".blocklyPathLight {", "  fill: none;", "  stroke-width: 2;", "  stroke-linecap: round;", "}", ".blocklySelected:not(.blocklyUndraggable)>.blocklyPath {", 
+"  stroke-width: 3px;", "  stroke: #fc3;", "}", ".blocklySelected:not(.blocklyUndraggable)>.blocklyPathLight {", "  display: none;", "}", ".blocklyDragging>.blocklyPath,", ".blocklyDragging>.blocklyPathLight {", "  fill-opacity: 0.8;", "  stroke-opacity: 0.8;", "}", ".blocklyDragging>.blocklyPathDark {", "  display: none;", "}", ".blocklyDisabled>.blocklyPath {", "  fill-opacity: 0.50;", "  stroke-opacity: 0.50;", "}", ".blocklyDisabled>.blocklyPathLight,", ".blocklyDisabled>.blocklyPathDark {", 
+"  display: none;", "}", ".blocklyText {", "  cursor: default;", "  font-family: sans-serif;", "  font-size: 11pt;", "  fill: #fff;", "}", ".blocklyNonEditableText>text {", "  pointer-events: none;", "}", ".blocklyNonEditableText>rect,", ".blocklyEditableText>rect {", "  fill: #fff;", "  fill-opacity: 0.6;", "}", ".blocklyNonEditableText>text,", ".blocklyEditableText>text {", "  fill: #000;", "}", ".blocklyEditableText:hover>rect {", "  stroke-width: 2;", "  stroke: #fff;", "}", "/*", " * Don't allow users to select text.  It gets annoying when trying to", 
+" * drag a block and selected text moves instead.", " */", ".blocklySvg text {", "  -moz-user-select: none;", "  -webkit-user-select: none;", "  user-select: none;", "  cursor: inherit;", "}", "", ".blocklyHidden {", "  display: none;", "}", ".blocklyFieldDropdown:not(.blocklyHidden) {", "  display: block;", "}", ".blocklyTooltipBackground {", "  fill: #ffffc7;", "  stroke-width: 1px;", "  stroke: #d8d8d8;", "}", ".blocklyTooltipShadow,", ".blocklyContextMenuShadow,", ".blocklyDropdownMenuShadow {", 
+"  fill: #bbb;", "  filter: url(#blocklyShadowFilter);", "}", ".blocklyTooltipText {", "  font-family: sans-serif;", "  font-size: 9pt;", "  fill: #000;", "}", "", ".blocklyIconShield {", "  cursor: default;", "  fill: #00c;", "  stroke-width: 1px;", "  stroke: #ccc;", "}", ".blocklyIconGroup:hover>.blocklyIconShield {", "  fill: #00f;", "  stroke: #fff;", "}", ".blocklyIconGroup:hover>.blocklyIconMark {", "  fill: #fff;", "}", ".blocklyIconMark {", "  cursor: default !important;", "  font-family: sans-serif;", 
+"  font-size: 9pt;", "  font-weight: bold;", "  fill: #ccc;", "  text-anchor: middle;", "}", ".blocklyWarningBody {", "}", ".blocklyMinimalBody {", "  margin: 0;", "  padding: 0;", "}", ".blocklyCommentTextarea {", "  margin: 0;", "  padding: 2px;", "  border: 0;", "  resize: none;", "  background-color: #ffc;", "}", ".blocklyHtmlInput {", "  font-family: sans-serif;", "  font-size: 11pt;", "  border: none;", "  outline: none;", "  width: 100%", "}", ".blocklyContextMenuBackground,", ".blocklyMutatorBackground {", 
+"  fill: #fff;", "  stroke-width: 1;", "  stroke: #ddd;", "}", ".blocklyContextMenuOptions>.blocklyMenuDiv,", ".blocklyContextMenuOptions>.blocklyMenuDivDisabled,", ".blocklyDropdownMenuOptions>.blocklyMenuDiv {", "  fill: #fff;", "}", ".blocklyContextMenuOptions>.blocklyMenuDiv:hover>rect,", ".blocklyDropdownMenuOptions>.blocklyMenuDiv:hover>rect {", "  fill: #57e;", "}", ".blocklyMenuSelected>rect {", "  fill: #57e;", "}", ".blocklyMenuText {", "  cursor: default !important;", "  font-family: sans-serif;", 
+"  font-size: 15px; /* All context menu sizes are based on pixels. */", "  fill: #000;", "}", ".blocklyContextMenuOptions>.blocklyMenuDiv:hover>.blocklyMenuText,", ".blocklyDropdownMenuOptions>.blocklyMenuDiv:hover>.blocklyMenuText {", "  fill: #fff;", "}", ".blocklyMenuSelected>.blocklyMenuText {", "  fill: #fff;", "}", ".blocklyMenuDivDisabled>.blocklyMenuText {", "  fill: #ccc;", "}", ".blocklyFlyoutBackground {", "  fill: #ddd;", "  fill-opacity: 0.8;", "}", ".blocklyColourBackground {", "  fill: #666;", 
+"}", ".blocklyScrollbarBackground {", "  fill: #fff;", "  stroke-width: 1;", "  stroke: #e4e4e4;", "}", ".blocklyScrollbarKnob {", "  fill: #ccc;", "}", ".blocklyScrollbarBackground:hover+.blocklyScrollbarKnob,", ".blocklyScrollbarKnob:hover {", "  fill: #bbb;", "}", ".blocklyInvalidInput {", "  background: #faa;", "}", ".blocklyAngleCircle {", "  stroke: #444;", "  stroke-width: 1;", "  fill: #ddd;", "  fill-opacity: 0.8;", "}", ".blocklyAngleMarks {", "  stroke: #444;", "  stroke-width: 1;", "}", 
+".blocklyAngleGuage {", "  fill: #d00;", "  fill-opacity: 0.8;  ", "}", "", "/* Category tree in Toolbox. */", ".blocklyToolboxDiv {", "  background-color: #ddd;", "  display: none;", "  overflow-x: visible;", "  overflow-y: auto;", "  position: absolute;", "}", ".blocklyTreeRoot {", "  padding: 4px 0;", "}", ".blocklyTreeRoot:focus {", "  outline: none;", "}", ".blocklyTreeRow {", "  line-height: 22px;", "  height: 22px;", "  padding-right: 1em;", "  white-space: nowrap;", "}", '.blocklyToolboxDiv[dir="RTL"] .blocklyTreeRow {', 
+"  padding-right: 0;", "  padding-left: 1em !important;", "}", ".blocklyTreeRow:hover {", "  background-color: #e4e4e4;", "}", ".blocklyTreeIcon {", "  height: 16px;", "  width: 16px;", "  vertical-align: middle;", "  background-image: url(%TREE_PATH%);", "}", ".blocklyTreeIconClosedLtr {", "  background-position: -32px -1px;", "}", ".blocklyTreeIconClosedRtl {", "  background-position: 0px -1px;", "}", ".blocklyTreeIconOpen {", "  background-position: -16px -1px;", "}", ".blocklyTreeIconNone {", 
+"  background-position: -48px -1px;", "}", ".blocklyTreeSelected>.blocklyTreeIconClosedLtr {", "  background-position: -32px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconClosedRtl {", "  background-position: 0px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconOpen {", "  background-position: -16px -17px;", "}", ".blocklyTreeSelected>.blocklyTreeIconNone {", "  background-position: -48px -17px;", "}", ".blocklyTreeLabel {", "  cursor: default;", "  font-family: sans-serif;", "  font-size: 16px;", 
+"  padding: 0 3px;", "  vertical-align: middle;", "}", ".blocklyTreeSelected  {", "  background-color: #57e !important;", "}", ".blocklyTreeSelected .blocklyTreeLabel {", "  color: #fff;", "}", ".blocklyArrow {", "   font-size: 80%;", " }", "", "/*", " * Copyright 2007 The Closure Library Authors. All Rights Reserved.", " *", " * Use of this source code is governed by the Apache License, Version 2.0.", " * See the COPYING file for details.", " */", "", "/* Author: pupius@google.com (Daniel Pupius) */", 
+"", "/*", " Styles to make the colorpicker look like the old gmail color picker", " NOTE: without CSS scoping this will override styles defined in palette.css", "*/", ".goog-palette {", "  outline: none;", "  cursor: default;", "}", "", ".goog-palette-table {", "  border: 1px solid #666;", "  border-collapse: collapse;", "}", "", ".goog-palette-cell {", "  height: 25px;", "  width: 25px;", "  margin: 0;", "  border: 0;", "  text-align: center;", "  vertical-align: middle;", "  border-right: 1px solid #666;", 
+"  font-size: 1px;", "}", "", ".goog-palette-colorswatch {", "  position: relative;", "  height: 25px;", "  width: 25px;", "  border: 1px solid #666;", "}", "", ".goog-palette-cell-hover .goog-palette-colorswatch {", "  border: 1px solid #FFF;", "}", "", ".goog-palette-cell-selected .goog-palette-colorswatch {", "  border: 1px solid #000;", "  color: #fff;", "}", ""];
 goog.provide("Blockly.inject");
 goog.require("Blockly.Css");
 goog.require("goog.dom");
