@@ -2326,11 +2326,12 @@ Blockly.BlockSvg.prototype.updateColour = function() {
   if(this.block_.disabled) {
     return
   }
+  var hexColour;
   if(!this.block_.isMovable()) {
-    this.updateToColour_(Blockly.BlockSvg.DISABLED_COLOUR);
-    return
+    hexColour = Blockly.BlockSvg.DISABLED_COLOUR
+  }else {
+    hexColour = Blockly.makeColour(this.block_.getColour(), this.block_.getSaturation(), this.block_.getValue())
   }
-  var hexColour = Blockly.makeColour(this.block_.getColour(), this.block_.getSaturation(), this.block_.getValue());
   this.updateToColour_(hexColour)
 };
 Blockly.BlockSvg.prototype.updateToColour_ = function(hexColour) {
@@ -4165,6 +4166,13 @@ goog.math.isInt = function(num) {
 goog.math.isFiniteNumber = function(num) {
   return isFinite(num) && !isNaN(num)
 };
+goog.math.log10Floor = function(num) {
+  if(num > 0) {
+    var x = Math.round(Math.log(num) * Math.LOG10E);
+    return x - (Math.pow(10, x) > num)
+  }
+  return num == 0 ? -Infinity : NaN
+};
 goog.math.safeFloor = function(num, opt_epsilon) {
   goog.asserts.assert(!goog.isDef(opt_epsilon) || opt_epsilon > 0);
   return Math.floor(num + (opt_epsilon || 2E-15))
@@ -4250,6 +4258,18 @@ goog.math.Coordinate.prototype.scale = function(sx, opt_sy) {
   this.x *= sx;
   this.y *= sy;
   return this
+};
+goog.math.Coordinate.prototype.rotateRadians = function(radians, opt_center) {
+  var center = opt_center || new goog.math.Coordinate(0, 0);
+  var x = this.x;
+  var y = this.y;
+  var cos = Math.cos(radians);
+  var sin = Math.sin(radians);
+  this.x = (x - center.x) * cos - (y - center.y) * sin + center.x;
+  this.y = (x - center.x) * sin + (y - center.y) * cos + center.y
+};
+goog.math.Coordinate.prototype.rotateDegrees = function(degrees, opt_center) {
+  this.rotateRadians(goog.math.toRadians(degrees), opt_center)
 };
 goog.provide("goog.math.Box");
 goog.require("goog.math.Coordinate");
@@ -6812,9 +6832,10 @@ goog.events.ListenerMap.prototype.getListenerCount = function() {
   return count
 };
 goog.events.ListenerMap.prototype.add = function(type, listener, callOnce, opt_useCapture, opt_listenerScope) {
-  var listenerArray = this.listeners[type];
+  var typeStr = type.toString();
+  var listenerArray = this.listeners[typeStr];
   if(!listenerArray) {
-    listenerArray = this.listeners[type] = [];
+    listenerArray = this.listeners[typeStr] = [];
     this.typeCount_++
   }
   var listenerObj;
@@ -6825,24 +6846,25 @@ goog.events.ListenerMap.prototype.add = function(type, listener, callOnce, opt_u
       listenerObj.callOnce = false
     }
   }else {
-    listenerObj = new goog.events.Listener(listener, null, this.src, type, !!opt_useCapture, opt_listenerScope);
+    listenerObj = new goog.events.Listener(listener, null, this.src, typeStr, !!opt_useCapture, opt_listenerScope);
     listenerObj.callOnce = callOnce;
     listenerArray.push(listenerObj)
   }
   return listenerObj
 };
 goog.events.ListenerMap.prototype.remove = function(type, listener, opt_useCapture, opt_listenerScope) {
-  if(!(type in this.listeners)) {
+  var typeStr = type.toString();
+  if(!(typeStr in this.listeners)) {
     return false
   }
-  var listenerArray = this.listeners[type];
+  var listenerArray = this.listeners[typeStr];
   var index = goog.events.ListenerMap.findListenerIndex_(listenerArray, listener, opt_useCapture, opt_listenerScope);
   if(index > -1) {
     var listenerObj = listenerArray[index];
     listenerObj.markAsRemoved();
     goog.array.removeAt(listenerArray, index);
     if(listenerArray.length == 0) {
-      delete this.listeners[type];
+      delete this.listeners[typeStr];
       this.typeCount_--
     }
     return true
@@ -6865,9 +6887,10 @@ goog.events.ListenerMap.prototype.removeByKey = function(listener) {
   return removed
 };
 goog.events.ListenerMap.prototype.removeAll = function(opt_type) {
+  var typeStr = opt_type && opt_type.toString();
   var count = 0;
   for(var type in this.listeners) {
-    if(!opt_type || type == opt_type) {
+    if(!typeStr || type == typeStr) {
       var listenerArray = this.listeners[type];
       for(var i = 0;i < listenerArray.length;i++) {
         ++count;
@@ -6880,7 +6903,7 @@ goog.events.ListenerMap.prototype.removeAll = function(opt_type) {
   return count
 };
 goog.events.ListenerMap.prototype.getListeners = function(type, capture) {
-  var listenerArray = this.listeners[type];
+  var listenerArray = this.listeners[type.toString()];
   var rv = [];
   if(listenerArray) {
     for(var i = 0;i < listenerArray.length;++i) {
@@ -6893,7 +6916,7 @@ goog.events.ListenerMap.prototype.getListeners = function(type, capture) {
   return rv
 };
 goog.events.ListenerMap.prototype.getListener = function(type, listener, capture, opt_listenerScope) {
-  var listenerArray = this.listeners[type];
+  var listenerArray = this.listeners[type.toString()];
   var i = -1;
   if(listenerArray) {
     i = goog.events.ListenerMap.findListenerIndex_(listenerArray, listener, capture, opt_listenerScope)
@@ -6902,10 +6925,11 @@ goog.events.ListenerMap.prototype.getListener = function(type, listener, capture
 };
 goog.events.ListenerMap.prototype.hasListener = function(opt_type, opt_capture) {
   var hasType = goog.isDef(opt_type);
+  var typeStr = hasType ? opt_type.toString() : "";
   var hasCapture = goog.isDef(opt_capture);
   return goog.object.some(this.listeners, function(listenerArray, type) {
     for(var i = 0;i < listenerArray.length;++i) {
-      if((!hasType || listenerArray[i].type == opt_type) && (!hasCapture || listenerArray[i].capture == opt_capture)) {
+      if((!hasType || listenerArray[i].type == typeStr) && (!hasCapture || listenerArray[i].capture == opt_capture)) {
         return true
       }
     }
@@ -11396,8 +11420,7 @@ Blockly.Block.prototype.moveConnections_ = function(dx, dy) {
   }
 };
 Blockly.Block.prototype.setDragging_ = function(adding) {
-  this.setDraggingHandleImmovable_(adding, function(block) {
-  })
+  this.setDraggingHandleImmovable_(adding, null)
 };
 Blockly.Block.prototype.setDraggingHandleImmovable_ = function(adding, immovableBlockHandler) {
   if(adding) {
@@ -11407,7 +11430,7 @@ Blockly.Block.prototype.setDraggingHandleImmovable_ = function(adding, immovable
   }
   for(var x = 0;x < this.childBlocks_.length;x++) {
     var block = this.childBlocks_[x];
-    if(adding && !block.isMovable()) {
+    if(adding && (immovableBlockHandler !== null && !block.isMovable())) {
       immovableBlockHandler(block);
       break
     }
@@ -11469,15 +11492,14 @@ Blockly.Block.prototype.onMouseMove_ = function(e) {
   e.stopPropagation()
 };
 Blockly.Block.prototype.generateReconnector_ = function(earlierConnection) {
-  if(!earlierConnection || !earlierConnection.targetConnection) {
-    return function(block) {
-    }
+  var earlierNextConnection;
+  if(earlierConnection && earlierConnection.targetConnection) {
+    earlierNextConnection = earlierConnection.targetConnection
   }
-  var earlierNextConnection = earlierConnection.targetConnection;
   return function(block) {
     if(block.previousConnection) {
       block.setParent(null);
-      earlierNextConnection.connect(block.previousConnection)
+      earlierNextConnection && earlierNextConnection.connect(block.previousConnection)
     }
   }
 };
@@ -12962,10 +12984,8 @@ goog.iter.map = function(iterable, f, opt_obj) {
   var iterator = goog.iter.toIterator(iterable);
   var newIter = new goog.iter.Iterator;
   newIter.next = function() {
-    while(true) {
-      var val = iterator.next();
-      return f.call(opt_obj, val, undefined, iterator)
-    }
+    var val = iterator.next();
+    return f.call(opt_obj, val, undefined, iterator)
   };
   return newIter
 };
@@ -16897,6 +16917,7 @@ goog.ui.PaletteRenderer.prototype.createRow = function(cells, dom) {
 goog.ui.PaletteRenderer.prototype.createCell = function(node, dom) {
   var cell = dom.createDom(goog.dom.TagName.TD, {"class":goog.getCssName(this.getCssClass(), "cell"), "id":goog.getCssName(this.getCssClass(), "cell-") + goog.ui.PaletteRenderer.cellId_++}, node);
   goog.a11y.aria.setRole(cell, goog.a11y.aria.Role.GRIDCELL);
+  goog.a11y.aria.setState(cell, goog.a11y.aria.State.SELECTED, false);
   if(!goog.dom.getTextContent(cell) && !goog.a11y.aria.getLabel(cell)) {
     var ariaLabelForCell = this.findAriaLabelForCell_(cell);
     if(ariaLabelForCell) {
@@ -16987,7 +17008,8 @@ goog.ui.PaletteRenderer.prototype.getCellForItem = function(node) {
 goog.ui.PaletteRenderer.prototype.selectCell = function(palette, node, select) {
   if(node) {
     var cell = (node.parentNode);
-    goog.dom.classlist.enable(cell, goog.getCssName(this.getCssClass(), "cell-selected"), select)
+    goog.dom.classlist.enable(cell, goog.getCssName(this.getCssClass(), "cell-selected"), select);
+    goog.a11y.aria.setState(cell, goog.a11y.aria.State.SELECTED, select)
   }
 };
 goog.ui.PaletteRenderer.prototype.getCssClass = function() {
@@ -17005,7 +17027,7 @@ goog.require("goog.ui.Control");
 goog.require("goog.ui.PaletteRenderer");
 goog.require("goog.ui.SelectionModel");
 goog.ui.Palette = function(items, opt_renderer, opt_domHelper) {
-  goog.base(this, items, opt_renderer || goog.ui.PaletteRenderer.getInstance(), opt_domHelper);
+  goog.ui.Palette.base(this, "constructor", items, opt_renderer || goog.ui.PaletteRenderer.getInstance(), opt_domHelper);
   this.setAutoStates(goog.ui.Component.State.CHECKED | goog.ui.Component.State.SELECTED | goog.ui.Component.State.OPENED, false);
   this.currentCellControl_ = new goog.ui.Palette.CurrentCell_;
   this.currentCellControl_.setParentEventTarget(this);
@@ -17067,7 +17089,7 @@ goog.ui.Palette.prototype.performActionInternal = function(e) {
   var item = this.getHighlightedItem();
   if(item) {
     this.setSelectedItem(item);
-    return goog.base(this, "performActionInternal", e)
+    return goog.ui.Palette.base(this, "performActionInternal", e)
   }
   return false
 };
@@ -17197,7 +17219,7 @@ goog.ui.Palette.prototype.highlightIndex_ = function(index, highlight) {
   }
 };
 goog.ui.Palette.prototype.setHighlighted = function(highlight) {
-  goog.base(this, "setHighlighted", highlight);
+  goog.ui.Palette.base(this, "setHighlighted", highlight);
   if(highlight && this.highlightedIndex_ == -1) {
     this.setHighlightedIndex(this.lastHighlightedIndex_ > -1 ? this.lastHighlightedIndex_ : 0)
   }else {
@@ -17228,7 +17250,7 @@ goog.ui.Palette.prototype.adjustSize_ = function() {
   }
 };
 goog.ui.Palette.CurrentCell_ = function() {
-  goog.base(this, null);
+  goog.ui.Palette.CurrentCell_.base(this, "constructor", null);
   this.setDispatchTransitionEvents(goog.ui.Component.State.HOVER, true)
 };
 goog.inherits(goog.ui.Palette.CurrentCell_, goog.ui.Control);
