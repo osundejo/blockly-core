@@ -2,12 +2,7 @@
 
 set -e
 
-if [[ $# -ne 1 ]]; then
-  echo 'Usage: codeorg-messages.sh <blockly-core-i18n-path>' > /dev/stdout
-  exit 1
-fi
-
-locales_dir=$1/locales
+locales_dir=i18n/locales
 core_dir=.
 
 locales=$(ls $locales_dir)
