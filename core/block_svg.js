@@ -422,7 +422,7 @@ Blockly.BlockSvg.prototype.updateColour = function() {
 
   var hexColour;
 
-  if (!this.block_.isMovable()) {
+  if (!this.block_.isMovable() && !Blockly.readOnly) {
     hexColour = Blockly.BlockSvg.DISABLED_COLOUR;
   } else {
     hexColour = Blockly.makeColour(this.block_.getColour(),
